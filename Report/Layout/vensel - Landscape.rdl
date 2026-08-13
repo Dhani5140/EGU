@@ -1,0 +1,407 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="DataSource">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+      <rd:SecurityType>None</rd:SecurityType>
+    </DataSource>
+  </DataSources>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <Height>2in</Height>
+        <Style />
+      </Body>
+      <Width>6.5in</Width>
+      <Page>
+        <Style />
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <Code>Public Function BlankZero(ByVal Value As Decimal)
+    if Value = 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankPos(ByVal Value As Decimal)
+    if Value &gt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankZeroAndPos(ByVal Value As Decimal)
+    if Value &gt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNeg(ByVal Value As Decimal)
+    if Value &lt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNegAndZero(ByVal Value As Decimal)
+    if Value &lt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+</Code>
+  <Language>=User!Language</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportUnitType>Inch</rd:ReportUnitType>
+  <rd:ReportID>0eeb6585-38ae-40f1-885b-8d50088d51b4</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="CompanyName">
+          <DataField>CompanyName</DataField>
+        </Field>
+        <Field Name="CompanyPicture">
+          <DataField>CompanyPicture</DataField>
+        </Field>
+        <Field Name="Document_No">
+          <DataField>Document_No</DataField>
+        </Field>
+        <Field Name="Document_Date">
+          <DataField>Document_Date</DataField>
+        </Field>
+        <Field Name="PRNo">
+          <DataField>PRNo</DataField>
+        </Field>
+        <Field Name="Peruntukan">
+          <DataField>Peruntukan</DataField>
+        </Field>
+        <Field Name="Location_Code">
+          <DataField>Location_Code</DataField>
+        </Field>
+        <Field Name="VendorName1">
+          <DataField>VendorName1</DataField>
+        </Field>
+        <Field Name="VendorName2">
+          <DataField>VendorName2</DataField>
+        </Field>
+        <Field Name="VendorName3">
+          <DataField>VendorName3</DataField>
+        </Field>
+        <Field Name="VendorAddress1">
+          <DataField>VendorAddress1</DataField>
+        </Field>
+        <Field Name="VendorAddress2">
+          <DataField>VendorAddress2</DataField>
+        </Field>
+        <Field Name="VendorAddress3">
+          <DataField>VendorAddress3</DataField>
+        </Field>
+        <Field Name="ShippingDate1">
+          <DataField>ShippingDate1</DataField>
+        </Field>
+        <Field Name="ShippingDate2">
+          <DataField>ShippingDate2</DataField>
+        </Field>
+        <Field Name="ShippingDate3">
+          <DataField>ShippingDate3</DataField>
+        </Field>
+        <Field Name="PaymentTerms1">
+          <DataField>PaymentTerms1</DataField>
+        </Field>
+        <Field Name="PaymentTerms2">
+          <DataField>PaymentTerms2</DataField>
+        </Field>
+        <Field Name="PaymentTerms3">
+          <DataField>PaymentTerms3</DataField>
+        </Field>
+        <Field Name="ShiptoName1">
+          <DataField>ShiptoName1</DataField>
+        </Field>
+        <Field Name="ShiptoName2">
+          <DataField>ShiptoName2</DataField>
+        </Field>
+        <Field Name="ShiptoName3">
+          <DataField>ShiptoName3</DataField>
+        </Field>
+        <Field Name="ShipmentMethod1">
+          <DataField>ShipmentMethod1</DataField>
+        </Field>
+        <Field Name="ShipmentMethod2">
+          <DataField>ShipmentMethod2</DataField>
+        </Field>
+        <Field Name="ShipmentMethod3">
+          <DataField>ShipmentMethod3</DataField>
+        </Field>
+        <Field Name="VendorPhoneNo1">
+          <DataField>VendorPhoneNo1</DataField>
+        </Field>
+        <Field Name="VendorPhoneNo2">
+          <DataField>VendorPhoneNo2</DataField>
+        </Field>
+        <Field Name="VendorPhoneNo3">
+          <DataField>VendorPhoneNo3</DataField>
+        </Field>
+        <Field Name="SyaratPembayaran1">
+          <DataField>SyaratPembayaran1</DataField>
+        </Field>
+        <Field Name="SyaratPembayaran2">
+          <DataField>SyaratPembayaran2</DataField>
+        </Field>
+        <Field Name="SyaratPembayaran3">
+          <DataField>SyaratPembayaran3</DataField>
+        </Field>
+        <Field Name="gDuplicate">
+          <DataField>gDuplicate</DataField>
+        </Field>
+        <Field Name="gRowNo">
+          <DataField>gRowNo</DataField>
+        </Field>
+        <Field Name="No_">
+          <DataField>No_</DataField>
+        </Field>
+        <Field Name="Type">
+          <DataField>Type</DataField>
+        </Field>
+        <Field Name="Description">
+          <DataField>Description</DataField>
+        </Field>
+        <Field Name="Quantity">
+          <DataField>Quantity</DataField>
+        </Field>
+        <Field Name="QuantityFormat">
+          <DataField>QuantityFormat</DataField>
+        </Field>
+        <Field Name="UnitofMeasure">
+          <DataField>UnitofMeasure</DataField>
+        </Field>
+        <Field Name="LastVendorName">
+          <DataField>LastVendorName</DataField>
+        </Field>
+        <Field Name="LastPostingDate">
+          <DataField>LastPostingDate</DataField>
+        </Field>
+        <Field Name="LastUnitCost">
+          <DataField>LastUnitCost</DataField>
+        </Field>
+        <Field Name="LastUnitCostFormat">
+          <DataField>LastUnitCostFormat</DataField>
+        </Field>
+        <Field Name="LastPINo">
+          <DataField>LastPINo</DataField>
+        </Field>
+        <Field Name="UnitPrice1">
+          <DataField>UnitPrice1</DataField>
+        </Field>
+        <Field Name="UnitPrice1Format">
+          <DataField>UnitPrice1Format</DataField>
+        </Field>
+        <Field Name="UnitPrice2">
+          <DataField>UnitPrice2</DataField>
+        </Field>
+        <Field Name="UnitPrice2Format">
+          <DataField>UnitPrice2Format</DataField>
+        </Field>
+        <Field Name="UnitPrice3">
+          <DataField>UnitPrice3</DataField>
+        </Field>
+        <Field Name="UnitPrice3Format">
+          <DataField>UnitPrice3Format</DataField>
+        </Field>
+        <Field Name="Unit_Price_Service1">
+          <DataField>Unit_Price_Service1</DataField>
+        </Field>
+        <Field Name="Unit_Price_Service1Format">
+          <DataField>Unit_Price_Service1Format</DataField>
+        </Field>
+        <Field Name="Unit_Price_Service2">
+          <DataField>Unit_Price_Service2</DataField>
+        </Field>
+        <Field Name="Unit_Price_Service2Format">
+          <DataField>Unit_Price_Service2Format</DataField>
+        </Field>
+        <Field Name="Unit_Price_Service3">
+          <DataField>Unit_Price_Service3</DataField>
+        </Field>
+        <Field Name="Unit_Price_Service3Format">
+          <DataField>Unit_Price_Service3Format</DataField>
+        </Field>
+        <Field Name="Discount1">
+          <DataField>Discount1</DataField>
+        </Field>
+        <Field Name="Discount1Format">
+          <DataField>Discount1Format</DataField>
+        </Field>
+        <Field Name="Discount2">
+          <DataField>Discount2</DataField>
+        </Field>
+        <Field Name="Discount2Format">
+          <DataField>Discount2Format</DataField>
+        </Field>
+        <Field Name="Discount3">
+          <DataField>Discount3</DataField>
+        </Field>
+        <Field Name="Discount3Format">
+          <DataField>Discount3Format</DataField>
+        </Field>
+        <Field Name="Line_Amount1">
+          <DataField>Line_Amount1</DataField>
+        </Field>
+        <Field Name="Line_Amount1Format">
+          <DataField>Line_Amount1Format</DataField>
+        </Field>
+        <Field Name="Line_Amount2">
+          <DataField>Line_Amount2</DataField>
+        </Field>
+        <Field Name="Line_Amount2Format">
+          <DataField>Line_Amount2Format</DataField>
+        </Field>
+        <Field Name="Line_Amount3">
+          <DataField>Line_Amount3</DataField>
+        </Field>
+        <Field Name="Line_Amount3Format">
+          <DataField>Line_Amount3Format</DataField>
+        </Field>
+        <Field Name="SubTotal1">
+          <DataField>SubTotal1</DataField>
+        </Field>
+        <Field Name="SubTotal1Format">
+          <DataField>SubTotal1Format</DataField>
+        </Field>
+        <Field Name="SubTotal2">
+          <DataField>SubTotal2</DataField>
+        </Field>
+        <Field Name="SubTotal2Format">
+          <DataField>SubTotal2Format</DataField>
+        </Field>
+        <Field Name="SubTotal3">
+          <DataField>SubTotal3</DataField>
+        </Field>
+        <Field Name="SubTotal3Format">
+          <DataField>SubTotal3Format</DataField>
+        </Field>
+        <Field Name="VAT1">
+          <DataField>VAT1</DataField>
+        </Field>
+        <Field Name="VAT1Format">
+          <DataField>VAT1Format</DataField>
+        </Field>
+        <Field Name="VAT2">
+          <DataField>VAT2</DataField>
+        </Field>
+        <Field Name="VAT2Format">
+          <DataField>VAT2Format</DataField>
+        </Field>
+        <Field Name="VAT3">
+          <DataField>VAT3</DataField>
+        </Field>
+        <Field Name="VAT3Format">
+          <DataField>VAT3Format</DataField>
+        </Field>
+        <Field Name="WHT1">
+          <DataField>WHT1</DataField>
+        </Field>
+        <Field Name="WHT1Format">
+          <DataField>WHT1Format</DataField>
+        </Field>
+        <Field Name="WHT2">
+          <DataField>WHT2</DataField>
+        </Field>
+        <Field Name="WHT2Format">
+          <DataField>WHT2Format</DataField>
+        </Field>
+        <Field Name="WHT3">
+          <DataField>WHT3</DataField>
+        </Field>
+        <Field Name="WHT3Format">
+          <DataField>WHT3Format</DataField>
+        </Field>
+        <Field Name="PPH2_1">
+          <DataField>PPH2_1</DataField>
+        </Field>
+        <Field Name="PPH2_1Format">
+          <DataField>PPH2_1Format</DataField>
+        </Field>
+        <Field Name="PPH2_2">
+          <DataField>PPH2_2</DataField>
+        </Field>
+        <Field Name="PPH2_2Format">
+          <DataField>PPH2_2Format</DataField>
+        </Field>
+        <Field Name="PPH2_3">
+          <DataField>PPH2_3</DataField>
+        </Field>
+        <Field Name="PPH2_3Format">
+          <DataField>PPH2_3Format</DataField>
+        </Field>
+        <Field Name="PBBKB_1">
+          <DataField>PBBKB_1</DataField>
+        </Field>
+        <Field Name="PBBKB_1Format">
+          <DataField>PBBKB_1Format</DataField>
+        </Field>
+        <Field Name="PBBKB_2">
+          <DataField>PBBKB_2</DataField>
+        </Field>
+        <Field Name="PBBKB_2Format">
+          <DataField>PBBKB_2Format</DataField>
+        </Field>
+        <Field Name="PBBKB_3">
+          <DataField>PBBKB_3</DataField>
+        </Field>
+        <Field Name="PBBKB_3Format">
+          <DataField>PBBKB_3Format</DataField>
+        </Field>
+        <Field Name="Total_Amount1">
+          <DataField>Total_Amount1</DataField>
+        </Field>
+        <Field Name="Total_Amount1Format">
+          <DataField>Total_Amount1Format</DataField>
+        </Field>
+        <Field Name="Total_Amount2">
+          <DataField>Total_Amount2</DataField>
+        </Field>
+        <Field Name="Total_Amount2Format">
+          <DataField>Total_Amount2Format</DataField>
+        </Field>
+        <Field Name="Total_Amount3">
+          <DataField>Total_Amount3</DataField>
+        </Field>
+        <Field Name="Total_Amount3Format">
+          <DataField>Total_Amount3Format</DataField>
+        </Field>
+        <Field Name="Keterangan1">
+          <DataField>Keterangan1</DataField>
+        </Field>
+        <Field Name="Keterangan2">
+          <DataField>Keterangan2</DataField>
+        </Field>
+        <Field Name="Keterangan3">
+          <DataField>Keterangan3</DataField>
+        </Field>
+        <Field Name="gWinBol1">
+          <DataField>gWinBol1</DataField>
+        </Field>
+        <Field Name="gWinBol2">
+          <DataField>gWinBol2</DataField>
+        </Field>
+        <Field Name="gWinBol3">
+          <DataField>gWinBol3</DataField>
+        </Field>
+        <Field Name="isShippingCharge">
+          <DataField>isShippingCharge</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>
