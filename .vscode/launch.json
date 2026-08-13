@@ -27,12 +27,12 @@
             "request": "launch",
             "type": "al",
             "environmentType": "Sandbox",
-            "environmentName": "EGUSB",
+            "environmentName": "EGUSB1",
             "breakOnError": "All",
             "launchBrowser": true,
             "enableLongRunningSqlStatements": true,
             "enableSqlInformationDebugger": true,
-            "tenant": "1cf4bf18-deb5-4942-8d71-5ffd8e0d3d4e",
+            "tenant": "72f2f470-2039-4f0e-8549-72b86e5b9b89",
             "startupObjectId": 22,
             "startupObjectType": "Page"
         }
