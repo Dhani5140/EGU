@@ -547,8 +547,8 @@ page 50139 "RFQ Card"
                 var
                     lCURFQFunction: Codeunit "RFQ Function";
                 begin
-                    IF NOT (Rec.Status IN [Rec.Status::Released, Rec.Status::Processed]) THEN
-                        ERROR('Status must be Released or Processed to create PO.');
+                    IF NOT (Rec.Status IN [Rec.Status::"Send To Vendor", Rec.Status::Processed]) THEN
+                        ERROR('Status must be Send To Vendor or Processed to create PO.');
 
                     // Validasi winner baru dicek di sini, bukan di Release
                     gCURFQunct.checkRFQLinehasWinner(Rec."RFQ No.");

@@ -3,6 +3,7 @@ page 50166 "RFQ Vendor Subform"
     PageType = ListPart;
     SourceTable = "RFQ Vendor List";
     InsertAllowed = TRUE;
+    DelayedInsert = TRUE;
     PopulateAllFields = TRUE;
     RefreshOnActivate = TRUE;
     Permissions = TableData "RFQ Vendor List" = rmid, tabledata RFQ_Vendor_ = rmid;

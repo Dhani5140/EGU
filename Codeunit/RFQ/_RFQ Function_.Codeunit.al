@@ -231,14 +231,13 @@ codeunit 50193 "RFQ Function"
     procedure insertRFQLineDetailsfromRFQVendor(var RFQVendor: Record "RFQ Vendor List")
     var
         lRecRFQLine: Record "RFQ Line";
-        currNo: Code[20];
     begin
         lRecRFQLine.RESET;
         lRecRFQLine.SETRANGE(lRecRFQLine."RFQ No.", RFQVendor."RFQ No.");
         IF lRecRFQLine.FIND('-') THEN BEGIN
             REPEAT
-                IF currNo <> lRecRFQLine."No." THEN insertRFQLineDetails(lRecRFQLine, RFQVendor);
-                currNo := lRecRFQLine."No.";
+                // insertRFQLineDetails sudah cek duplikat sendiri di dalam
+                insertRFQLineDetails(lRecRFQLine, RFQVendor);
             UNTIL lRecRFQLine.NEXT = 0;
         END
     end;
@@ -247,7 +246,6 @@ codeunit 50193 "RFQ Function"
     var
         lRecRFQLine: Record "RFQ Line";
         lRecRFQVendor: Record "RFQ Vendor List";
-        currNo: Code[20];
     begin
         lRecRFQVendor.RESET;
         lRecRFQVendor.SETRANGE("RFQ No.", parRFQHeader."RFQ No.");
@@ -257,8 +255,8 @@ codeunit 50193 "RFQ Function"
                 lRecRFQLine.SETRANGE(lRecRFQLine."RFQ No.", lRecRFQVendor."RFQ No.");
                 IF lRecRFQLine.FIND('-') THEN BEGIN
                     REPEAT
-                        IF currNo <> lRecRFQLine."No." THEN insertRFQLineDetails(lRecRFQLine, lRecRFQVendor);
-                        currNo := lRecRFQLine."No.";
+                        // insertRFQLineDetails sudah cek duplikat sendiri di dalam
+                        insertRFQLineDetails(lRecRFQLine, lRecRFQVendor);
                     UNTIL lRecRFQLine.NEXT = 0;
                 END UNTIL lRecRFQVendor.NEXT = 0;
         END;

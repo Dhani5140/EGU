@@ -2,7 +2,7 @@
   "id": "b9f74b17-0005-43f1-adc0-8c2a27630ba1",
   "name": "EGU",
   "publisher": "MII",
-  "version": "1.0.0.2",
+  "version": "1.0.0.25",
   "brief": "",
   "description": "",
   "privacyStatement": "",
@@ -13,7 +13,7 @@
   "dependencies": [],
   "screenshots": [],
   "platform": "1.0.0.0",
-  "application": "28.0.0.0",
+  "application": "28.1.0.0",
   "idRanges": [
     {
       "from": 50100,

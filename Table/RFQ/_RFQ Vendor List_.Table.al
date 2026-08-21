@@ -200,6 +200,10 @@ table 50107 "RFQ Vendor List"
     trigger OnInsert()
     begin
         checkCountLine();
+        // Di titik ini "Entry No. RFQ Vendor" (AutoIncrement) sudah punya nilai,
+        // sehingga RFQ Line Details yang dibuat langsung nyambung ke baris vendor ini.
+        IF "Vendor No." <> '' THEN
+            gCURFQFunct.insertRFQLineDetailsfromRFQVendor(Rec);
     end;
 
     trigger OnDelete()
@@ -214,7 +218,12 @@ table 50107 "RFQ Vendor List"
 
     trigger OnModify()
     begin
-
+        // Jaring pengaman: kalau saat OnInsert "Vendor No." masih kosong
+        // (baris ter-commit sebelum vendor dipilih), pembuatan Line Details
+        // ditangani di sini. insertRFQLineDetails sudah anti-duplikat,
+        // jadi aman walaupun OnInsert sudah membuatnya lebih dulu.
+        IF ("Vendor No." <> '') AND ("Entry No. RFQ Vendor" <> 0) THEN
+            gCURFQFunct.insertRFQLineDetailsfromRFQVendor(Rec);
     end;
 
     procedure checkVendorExist()
@@ -232,16 +241,21 @@ table 50107 "RFQ Vendor List"
     var
         lRecRFQLineDet: Record "RFQ Line Details";
     begin
+        // "Vendor No." adalah bagian dari Primary Key "RFQ Line Details"
+        // (Entry No. + RFQ No. + RFQ Line No. + Vendor No.), sehingga TIDAK BISA
+        // diubah lewat VALIDATE + MODIFY -> selalu error "RFQ Line Details does not exist".
+        // Pendekatan: hapus detail milik vendor lama, lalu buat ulang untuk vendor baru.
         lRecRFQLineDet.RESET;
         lRecRFQLineDet.SETRANGE(lRecRFQLineDet."RFQ No.", "RFQ No.");
         lRecRFQLineDet.SETRANGE(lRecRFQLineDet."Entry No. RFQ Vendor", "Entry No. RFQ Vendor");
-        IF lRecRFQLineDet.FIND('-') THEN BEGIN
-            REPEAT // IF lRecRFQLineDet."Check Win" THEN
-                //     ERROR('Vendor "%1" is winning in description "%2" line "%3", please cancel win first', xRec."Vendor Name", lRecRFQLineDet."Description", lRecRFQLineDet."RFQ Line No.");
-                lRecRFQLineDet.VALIDATE(lRecRFQLineDet."Vendor No.", Rec."Vendor No.");
-                lRecRFQLineDet.MODIFY(TRUE);
-            UNTIL lRecRFQLineDet.NEXT = 0;
-        END;
+        lRecRFQLineDet.SETFILTER(lRecRFQLineDet."Vendor No.", '<>%1', Rec."Vendor No.");
+        IF NOT lRecRFQLineDet.ISEMPTY THEN
+            lRecRFQLineDet.DELETEALL(TRUE);
+
+        // Buat ulang untuk vendor yang baru. Kalau "Entry No. RFQ Vendor" masih 0,
+        // berarti baris vendor belum ter-commit -> ditangani oleh trigger OnInsert.
+        IF ("Vendor No." <> '') AND ("Entry No. RFQ Vendor" <> 0) THEN
+            gCURFQFunct.insertRFQLineDetailsfromRFQVendor(Rec);
     end;
 
     procedure checkCountLine()
