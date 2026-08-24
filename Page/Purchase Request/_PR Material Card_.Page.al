@@ -359,7 +359,7 @@ page 50105 "PR Material Card"
                     Promoted = True;
                     PromotedCategory = Category4;
                     Image = ReleaseDoc;
-                    Visible = mandatory;
+                    //Visible = mandatory;
 
                     trigger OnAction()
                     begin

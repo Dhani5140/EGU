@@ -349,36 +349,36 @@ page 50139 "RFQ Card"
                     end;
                 }
 
-                action("Send To Vendor")
-                {
-                    ApplicationArea = All;
-                    Promoted = True;
-                    PromotedCategory = Category4;
-                    Image = SendTo;
+                // action("Send To Vendor")
+                // {
+                //     ApplicationArea = All;
+                //     Promoted = True;
+                //     PromotedCategory = Category4;
+                //     Image = SendTo;
 
 
-                    trigger OnAction()
-                    // begin
+                //     trigger OnAction()
+                //     // begin
 
-                    //     IF Rec.Status IN [Rec.Status::Open] = FALSE THEN ERROR('Status must be open to Release');
-                    //     IF NOT gCUApproval_RFQ.IsEnabled_Custom(Rec) THEN BEGIN
-                    //         Rec.VALIDATE("Status", Rec."Status"::"Send To Vendor");
-                    //         CurrPage.UPDATE();
-                    //         Message('Document has been Send To Vendor');
-                    //     END
-                    //     ELSE BEGIN
-                    //         ERROR('Workflow for this record data type is enabled, cannot manually release');
-                    //     END;
-                    // end;
+                //     //     IF Rec.Status IN [Rec.Status::Open] = FALSE THEN ERROR('Status must be open to Release');
+                //     //     IF NOT gCUApproval_RFQ.IsEnabled_Custom(Rec) THEN BEGIN
+                //     //         Rec.VALIDATE("Status", Rec."Status"::"Send To Vendor");
+                //     //         CurrPage.UPDATE();
+                //     //         Message('Document has been Send To Vendor');
+                //     //     END
+                //     //     ELSE BEGIN
+                //     //         ERROR('Workflow for this record data type is enabled, cannot manually release');
+                //     //     END;
+                //     // end;
 
-                    begin
-                        IF Rec.Status <> Rec.Status::Released THEN  // 
-                            ERROR('Status must be Released to Send To Vendor');  // 
-                        Rec.VALIDATE("Status", Rec.Status::"Send To Vendor");
-                        CurrPage.UPDATE();
-                        Message('Document has been sent to Vendor');
-                    end;
-                }
+                //     begin
+                //         IF Rec.Status <> Rec.Status::Released THEN  // 
+                //             ERROR('Status must be Released to Send To Vendor');  // 
+                //         Rec.VALIDATE("Status", Rec.Status::"Send To Vendor");
+                //         CurrPage.UPDATE();
+                //         Message('Document has been sent to Vendor');
+                //     end;
+                // }
 
                 action("Reopen")
                 {
@@ -547,8 +547,8 @@ page 50139 "RFQ Card"
                 var
                     lCURFQFunction: Codeunit "RFQ Function";
                 begin
-                    IF NOT (Rec.Status IN [Rec.Status::"Send To Vendor", Rec.Status::Processed]) THEN
-                        ERROR('Status must be Send To Vendor or Processed to create PO.');
+                    IF NOT (Rec.Status IN [Rec.Status::Released, Rec.Status::Processed]) THEN
+                        ERROR('Status must be Released or Processed to create PO.');
 
                     // Validasi winner baru dicek di sini, bukan di Release
                     gCURFQunct.checkRFQLinehasWinner(Rec."RFQ No.");
