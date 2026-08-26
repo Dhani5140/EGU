@@ -1501,6 +1501,25 @@ codeunit 50193 "RFQ Function"
         END;
     end;
 
+    // procedure insertRFQLineDetailsfromRFQLine(var RFQLine: Record "RFQ Line")
+    // var
+    //     lRecRFQVendor: Record "RFQ Vendor List";
+    //     WinEntryRFQVendor: Integer;
+    // begin
+    //     CLEAR(WinEntryRFQVendor);
+    //     lRecRFQVendor.RESET;
+    //     lRecRFQVendor.SETRANGE(lRecRFQVendor."RFQ No.", RFQLine."RFQ No.");
+    //     IF lRecRFQVendor.FIND('-') THEN BEGIN
+    //         REPEAT
+    //             insertRFQLineDetails(RFQLine, lRecRFQVendor);
+    //             IF lRecRFQVendor."Check Win" THEN WinEntryRFQVendor := lRecRFQVendor."Entry No. RFQ Vendor";
+    //         UNTIL lRecRFQVendor.NEXT = 0;
+    //     END;
+    //     IF WinEntryRFQVendor <> 0 THEN BEGIN
+    //         updWinRFQLine(RFQLine, WinEntryRFQVendor, TRUE);
+    //     END;
+    // end;
+
     procedure insertRFQLineDetailsfromRFQLine(var RFQLine: Record "RFQ Line")
     var
         lRecRFQVendor: Record "RFQ Vendor List";
@@ -1508,13 +1527,16 @@ codeunit 50193 "RFQ Function"
     begin
         CLEAR(WinEntryRFQVendor);
         lRecRFQVendor.RESET;
-        lRecRFQVendor.SETRANGE(lRecRFQVendor."RFQ No.", RFQLine."RFQ No.");
-        IF lRecRFQVendor.FIND('-') THEN BEGIN
+        lRecRFQVendor.SETRANGE("RFQ No.", RFQLine."RFQ No.");
+
+        IF lRecRFQVendor.FINDSET() THEN BEGIN
             REPEAT
                 insertRFQLineDetails(RFQLine, lRecRFQVendor);
-                IF lRecRFQVendor."Check Win" THEN WinEntryRFQVendor := lRecRFQVendor."Entry No. RFQ Vendor";
-            UNTIL lRecRFQVendor.NEXT = 0;
+                IF lRecRFQVendor."Check Win" THEN
+                    WinEntryRFQVendor := lRecRFQVendor."Entry No. RFQ Vendor";
+            UNTIL lRecRFQVendor.NEXT() = 0;
         END;
+
         IF WinEntryRFQVendor <> 0 THEN BEGIN
             updWinRFQLine(RFQLine, WinEntryRFQVendor, TRUE);
         END;
@@ -1556,6 +1578,34 @@ codeunit 50193 "RFQ Function"
         END;
     end;
 
+    // procedure insertRFQLineDetails(var RFQLine: Record "RFQ Line"; var RFQVendor: Record "RFQ Vendor List")
+    // var
+    //     lRecRFQLineDetails: Record "RFQ Line Details";
+    //     lRecRFQLineDetailsIns: Record "RFQ Line Details";
+    // begin
+    //     lRecRFQLineDetails.RESET;
+    //     lRecRFQLineDetails.SETRANGE("RFQ No.", RFQLine."RFQ No.");
+    //     lRecRFQLineDetails.SETRANGE("No.", RFQLine."No.");
+    //     lRecRFQLineDetails.SETRANGE("Entry No. RFQ Vendor", RFQVendor."Entry No. RFQ Vendor");
+    //     IF NOT lRecRFQLineDetails.FINDFIRST THEN BEGIN
+    //         lRecRFQLineDetailsIns.INIT();
+    //         lRecRFQLineDetailsIns."Entry No." := 0;
+    //         lRecRFQLineDetailsIns."RFQ No." := RFQLine."RFQ No.";
+    //         lRecRFQLineDetailsIns."RFQ Line No." := RFQLine."Line No.";
+    //         lRecRFQLineDetailsIns.VALIDATE("Vendor No.", RFQVendor."Vendor No.");
+    //         lRecRFQLineDetailsIns.Type := RFQLine.Type;
+    //         lRecRFQLineDetailsIns.VALIDATE("No.", RFQLine."No.");
+    //         lRecRFQLineDetailsIns.VALIDATE(Quantity, 1);
+    //         lRecRFQLineDetailsIns."Purchase Req. No." := RFQLine."Purchase Req. No.";
+    //         lRecRFQLineDetailsIns."Purchase Req. Line No." := RFQLine."Purchase Req. Line No.";
+    //         lRecRFQLineDetailsIns."Material Req. No." := RFQLine."Material Req. No.";
+    //         lRecRFQLineDetailsIns."Material Req. Line No." := RFQLine."Material Req. Line No.";
+    //         // lRecRFQLineDetailsIns."Entry No. RFQ Line" := RFQLine."Entry No. RFQ Line";
+    //         lRecRFQLineDetailsIns."Entry No. RFQ Vendor" := RFQVendor."Entry No. RFQ Vendor";
+    //         lRecRFQLineDetailsIns.INSERT();
+    //     END;
+    // end;
+
     procedure insertRFQLineDetails(var RFQLine: Record "RFQ Line"; var RFQVendor: Record "RFQ Vendor List")
     var
         lRecRFQLineDetails: Record "RFQ Line Details";
@@ -1563,24 +1613,29 @@ codeunit 50193 "RFQ Function"
     begin
         lRecRFQLineDetails.RESET;
         lRecRFQLineDetails.SETRANGE("RFQ No.", RFQLine."RFQ No.");
-        lRecRFQLineDetails.SETRANGE("No.", RFQLine."No.");
+        lRecRFQLineDetails.SETRANGE("RFQ Line No.", RFQLine."Line No.");
         lRecRFQLineDetails.SETRANGE("Entry No. RFQ Vendor", RFQVendor."Entry No. RFQ Vendor");
-        IF NOT lRecRFQLineDetails.FINDFIRST THEN BEGIN
+
+        IF NOT lRecRFQLineDetails.FINDFIRST() THEN BEGIN
             lRecRFQLineDetailsIns.INIT();
             lRecRFQLineDetailsIns."Entry No." := 0;
             lRecRFQLineDetailsIns."RFQ No." := RFQLine."RFQ No.";
             lRecRFQLineDetailsIns."RFQ Line No." := RFQLine."Line No.";
+
+            lRecRFQLineDetailsIns.INSERT(true);
+
             lRecRFQLineDetailsIns.VALIDATE("Vendor No.", RFQVendor."Vendor No.");
             lRecRFQLineDetailsIns.Type := RFQLine.Type;
             lRecRFQLineDetailsIns.VALIDATE("No.", RFQLine."No.");
             lRecRFQLineDetailsIns.VALIDATE(Quantity, 1);
+
             lRecRFQLineDetailsIns."Purchase Req. No." := RFQLine."Purchase Req. No.";
             lRecRFQLineDetailsIns."Purchase Req. Line No." := RFQLine."Purchase Req. Line No.";
             lRecRFQLineDetailsIns."Material Req. No." := RFQLine."Material Req. No.";
             lRecRFQLineDetailsIns."Material Req. Line No." := RFQLine."Material Req. Line No.";
-            // lRecRFQLineDetailsIns."Entry No. RFQ Line" := RFQLine."Entry No. RFQ Line";
             lRecRFQLineDetailsIns."Entry No. RFQ Vendor" := RFQVendor."Entry No. RFQ Vendor";
-            lRecRFQLineDetailsIns.INSERT();
+
+            lRecRFQLineDetailsIns.MODIFY(true);
         END;
     end;
 

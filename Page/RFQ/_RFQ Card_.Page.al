@@ -155,7 +155,8 @@ page 50139 "RFQ Card"
             {
                 Caption = 'Line Details';
                 ApplicationArea = All;
-                SubPageLink = "RFQ No." = field("RFQ No.");
+                //SubPageLink = "RFQ No." = field("RFQ No.");
+                SubPageLink = "Vendor No." = field("Vendor No."), "RFQ No." = field("RFQ No.");
                 //SubPageLink = "Entry No. RFQ Vendor" = field("Entry No. RFQ Vendor");
                 Provider = "RFQ Vendor Subform";
                 UpdatePropagation = Both;
