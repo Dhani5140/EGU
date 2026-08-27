@@ -552,7 +552,9 @@ page 50105 "PR Material Card"
                     lCURFQFunct: Codeunit "PR Material Function";
                 begin
                     IF NOT (Rec.Status IN [Rec.Status::Released, Rec.Status::Processed]) THEN ERROR('Status must be released or process to create RFQ');
-                    //lCURFQFunct.createPOHeader_RFQ(Rec);
+                    CurrPage.UPDATE();
+                    lCURFQFunct.createRFQHeader_PR(Rec);
+                    CurrPage.UPDATE();
                 end;
             }
 

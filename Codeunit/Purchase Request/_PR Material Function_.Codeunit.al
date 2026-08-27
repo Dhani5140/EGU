@@ -931,6 +931,52 @@ codeunit 50104 "PR Material Function"
     end;
 
 
+    procedure createRFQHeader_PR(var ParPRHeader: Record "PR Material Header")
+    var
+        lRecRFQHeader: Record "RFQ Header";
+        lRecPRLine: Record "PR Material Line";
+        lCURFQFunct: Codeunit "RFQ Function";
+        lIntCount: Integer;
+    begin
+        ParPRHeader.TestField("Purchase Req. No.");
+
+        // Ambil PR Line yang masih bisa di-RFQ-kan.
+        // Vendor No. sengaja TIDAK dicek di sini karena vendor baru ditentukan di RFQ.
+        lRecPRLine.RESET;
+        lRecPRLine.SETRANGE("Purchase Req. No.", ParPRHeader."Purchase Req. No.");
+        lRecPRLine.SETFILTER(Quantity, '>%1', 0);
+        lRecPRLine.SETFILTER("Outstanding Quantity", '>%1', 0);
+        lRecPRLine.SETFILTER(Status, '%1|%2', lRecPRLine.Status::Released, lRecPRLine.Status::Processed);
+        IF NOT lRecPRLine.FINDSET() THEN
+            ERROR('Tidak ada PR Line yang bisa dibuatkan RFQ (cek Quantity, Outstanding Quantity, dan Status line).');
+
+        // Buat RFQ Header baru. "RFQ No." di-generate otomatis oleh trigger OnInsert
+        // dari No. Series "RFQ Nos." di MII Setup.
+        CLEAR(lRecRFQHeader);
+        lRecRFQHeader.INIT;
+        lRecRFQHeader."RFQ No." := '';
+        lRecRFQHeader.INSERT(TRUE);
+
+        lRecRFQHeader.VALIDATE("PR No.", ParPRHeader."Purchase Req. No.");
+        IF ParPRHeader."Location Code" <> '' THEN
+            lRecRFQHeader.VALIDATE("Location Code", ParPRHeader."Location Code");
+        lRecRFQHeader."Material Req. No." := ParPRHeader."MR No.";
+        lRecRFQHeader.Remarks := ParPRHeader.Remarks;
+        lRecRFQHeader.MODIFY(TRUE);
+
+        // Buat RFQ Line dari tiap PR Line
+        CLEAR(lIntCount);
+        REPEAT
+            lCURFQFunct.CreateRFQLine_PR(lRecPRLine, lRecRFQHeader."RFQ No.");
+            lIntCount += 1;
+        UNTIL lRecPRLine.NEXT = 0;
+
+        COMMIT;
+        MESSAGE('RFQ %1 berhasil dibuat dari %2 (%3 line).',
+                lRecRFQHeader."RFQ No.", ParPRHeader."Purchase Req. No.", lIntCount);
+        PAGE.RUN(PAGE::"RFQ Card", lRecRFQHeader);
+    end;
+
     local procedure getPOLastLineNo(PONo: Code[20]): Integer
     var
         lRecPurchLine: Record "Purchase Line";
