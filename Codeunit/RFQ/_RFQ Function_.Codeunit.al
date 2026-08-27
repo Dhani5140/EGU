@@ -1622,9 +1622,10 @@ codeunit 50193 "RFQ Function"
             lRecRFQLineDetailsIns."RFQ No." := RFQLine."RFQ No.";
             lRecRFQLineDetailsIns."RFQ Line No." := RFQLine."Line No.";
 
+            lRecRFQLineDetailsIns.VALIDATE("Vendor No.", RFQVendor."Vendor No.");
+
             lRecRFQLineDetailsIns.INSERT(true);
 
-            lRecRFQLineDetailsIns.VALIDATE("Vendor No.", RFQVendor."Vendor No.");
             lRecRFQLineDetailsIns.Type := RFQLine.Type;
             lRecRFQLineDetailsIns.VALIDATE("No.", RFQLine."No.");
             lRecRFQLineDetailsIns.VALIDATE(Quantity, 1);
