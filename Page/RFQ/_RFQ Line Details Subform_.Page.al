@@ -433,33 +433,23 @@ page 50136 "RFQ Line Details Subform"
     trigger OnAfterGetRecord()
     begin
         Rec.CalcFields("Status RFQ");
-        IF Rec."Status RFQ" = Rec."Status RFQ"::Open THEN
-            gBolEditable := true;
-        // Diperlebar: Released ikut bisa edit harga, supaya alur bisa
-        // Release -> isi Line Details -> Create PO tanpa wajib Send To Vendor.
-        IF Rec."Status RFQ" IN [Rec."Status RFQ"::Released, Rec."Status RFQ"::"Send To Vendor"] then BEGIN
-            gsendtovendor := TRUE;
-        END
-        ELSE BEGIN
-            gBolEditable := FALSE;
-            gsendtovendor := false;
-        END;
+        // Assignment langsung: struktur IF-ELSE sebelumnya selalu menimpa
+        // gBolEditable jadi FALSE saat Open, sehingga tidak pernah editable.
+        gBolEditable := (Rec."Status RFQ" = Rec."Status RFQ"::Open);
+        gsendtovendor := Rec."Status RFQ" IN [Rec."Status RFQ"::Open,
+                                              Rec."Status RFQ"::Released,
+                                              Rec."Status RFQ"::"Send To Vendor"];
     end;
 
     trigger OnModifyRecord(): Boolean
     BEGIN
         Rec.CalcFields("Status RFQ");
-        IF Rec."Status RFQ" = Rec."Status RFQ"::Open THEN
-            gBolEditable := true;
-        // Diperlebar: Released ikut bisa edit harga, supaya alur bisa
-        // Release -> isi Line Details -> Create PO tanpa wajib Send To Vendor.
-        IF Rec."Status RFQ" IN [Rec."Status RFQ"::Released, Rec."Status RFQ"::"Send To Vendor"] then BEGIN
-            gsendtovendor := TRUE;
-        END
-        ELSE BEGIN
-            gBolEditable := FALSE;
-            gsendtovendor := false;
-        END;
+        // Assignment langsung: struktur IF-ELSE sebelumnya selalu menimpa
+        // gBolEditable jadi FALSE saat Open, sehingga tidak pernah editable.
+        gBolEditable := (Rec."Status RFQ" = Rec."Status RFQ"::Open);
+        gsendtovendor := Rec."Status RFQ" IN [Rec."Status RFQ"::Open,
+                                              Rec."Status RFQ"::Released,
+                                              Rec."Status RFQ"::"Send To Vendor"];
     END;
 
 

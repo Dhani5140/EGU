@@ -684,6 +684,8 @@ codeunit 50104 "PR Material Function"
                     PurchHeader.Validate("Buy-from Vendor No.", PRLine."Vendor No.");
                     PurchHeader.Validate("Document Date", WorkDate());
                     PurchHeader."Your Reference" := PRHeader."Purchase Req. No.";
+                    // Tautan balik ke PR, supaya PO bisa ditelusuri dari PR Card.
+                    PurchHeader."Purchase Req. No." := PRHeader."Purchase Req. No.";
                     PurchHeader.Modify(true);
 
                     // Update Tracker untuk baris selanjutnya
@@ -709,6 +711,10 @@ codeunit 50104 "PR Material Function"
                 PurchLine.Validate("Location Code", PRLine."Location Code");
                 PurchLine.Validate(Quantity, PRLine."Qty to PO");
                 PurchLine.Validate("Direct Unit Cost", PRLine."Direct Unit Cost");
+                // Tautan balik ke PR (dipakai untuk tracking PO dari PR Card).
+                PurchLine."Purchase Req. No." := PRHeader."Purchase Req. No.";
+                PurchLine."Purchase Req. Line No." := PRLine."Line No.";
+                PurchLine."Original Qty PR" := PRLine."Qty to PO";
                 PurchLine.Modify(true);
 
                 // 5. Kurangi sisa Qty yang belum di-PO-kan di PR Line
@@ -719,6 +725,11 @@ codeunit 50104 "PR Material Function"
 
                 LineNo += 10000;
             until PRLine.Next() = 0;
+
+            // Update status PR Header sesuai sisa Outstanding:
+            // masih ada sisa -> Processed, habis semua -> Closed.
+            closedStatus_PRMaterial(PRHeader."Purchase Req. No.");
+            IF PRHeader.GET(PRHeader."Purchase Req. No.") THEN;
 
             Message('Berhasil membuat %1 dokumen Purchase Order. PO telah dikelompokkan berdasarkan Vendor.', POCount);
         end else begin

@@ -637,4 +637,3 @@ page 50166 "RFQ Vendor Subform"
         gBolEditable: Boolean;
         editable2: Boolean;
 }
-

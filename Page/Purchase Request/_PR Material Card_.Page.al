@@ -615,7 +615,13 @@ page 50105 "PR Material Card"
                     VAR
                         mr: Record "Purchase Line";
                     begin
-                        mr.SetRange("Material Req. No.", rec."Material Req. No.");
+                        // Sebelumnya menyaring pakai "Material Req. No." (field 24) yang
+                        // umumnya kosong -> filter kosong -> semua PO Line ikut tampil.
+                        // Dari PR Card, relasi yang benar adalah lewat "Purchase Req. No.".
+                        Rec.TestField("Purchase Req. No.");
+                        mr.SetRange("Purchase Req. No.", Rec."Purchase Req. No.");
+                        IF mr.ISEMPTY THEN
+                            ERROR('Belum ada PO yang dibuat dari %1.', Rec."Purchase Req. No.");
                         page.run(PAGE::"Purchase Lines", mr);
                     end;
                 }
