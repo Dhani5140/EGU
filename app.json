@@ -10,10 +10,15 @@
   "help": "",
   "url": "",
   "logo": "",
-  "dependencies": [],
+  "dependencies": [ 
+    {"id": "c31ee575-3fc7-4388-98ee-d75aa2fc5f87",
+  "name": "Withholding Tax",
+  "publisher": "Microsoft",
+  "version": "28.4.53241.53312"}
+],
   "screenshots": [],
   "platform": "1.0.0.0",
-  "application": "28.1.0.0",
+  "application": "28.4.0.0",
   "idRanges": [
     {
       "from": 50100,
