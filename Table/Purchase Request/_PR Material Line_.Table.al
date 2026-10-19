@@ -802,8 +802,7 @@ table 50104 "PR Material Line"
             Caption = 'No.';
             DataClassification = ToBeClassified;
 
-            // Properti TableRelation murni menyaring field fisik "Item Category Code" yang ada di baris ini
-            TableRelation = if ("Type" = filter('Item')) Item where("Item Category Code" = field("Item Category Code"), Blocked = const(false))
+            TableRelation = if ("Type" = filter('Item')) Item where(Blocked = const(false))
             else
             if ("Type" = filter('Fixed Asset')) "Fixed Asset"
             else
@@ -838,7 +837,7 @@ table 50104 "PR Material Line"
 
                         // --- LOGIKA BAWAAN ANDA ---
                         VALIDATE("VAT Prod. Posting Group", lRecItem."VAT Prod. Posting Group");
-                        VALIDATE("Direct Unit Cost", gCUMSIFunct.getPurchPrice("Vendor No.", "Item No.", "Document Date"));
+                        VALIDATE("Direct Unit Cost", GetDefaultUnitCost());
                         // ---------------------------------------------------
                     END
                     ELSE BEGIN
@@ -893,9 +892,22 @@ table 50104 "PR Material Line"
             Caption = 'Quantity';
             DataClassification = ToBeClassified;
             DecimalPlaces = 0 : 5;
+
             trigger OnValidate()
+            var
+                lBolQtyToPOFollow: Boolean;
             begin
                 TestField(Quantity);
+
+
+                IF xRec.Quantity <> Rec.Quantity THEN BEGIN
+                    CalcFields("Total Qty On RFQ");
+                    IF Quantity < ("Qty Transferred to PO" + "Total Qty On RFQ") THEN
+                        ERROR(QtyBelowProcessedErr,
+                              Quantity, "Qty Transferred to PO" + "Total Qty On RFQ");
+                END;
+
+
                 IF ("Material Req. No." <> '') AND ("Material Req. Line No." <> 0) THEN BEGIN
                     IF xRec.Quantity <> Rec.Quantity THEN BEGIN
                         gRecMRLine.RESET;
@@ -903,17 +915,22 @@ table 50104 "PR Material Line"
                         gRecMRLine.SETRANGE("Line No.", "Material Req. Line No.");
                         IF gRecMRLine.FINDFIRST THEN BEGIN
                             IF gRecMRLine."Outstanding Quantity" + (xRec.Quantity - Rec.Quantity) < 0 THEN
-                                ERROR('You cannot input more than %1', gRecMRLine."Outstanding Quantity" + xRec.Quantity);
+                                ERROR('You cannot input more than %1',
+                                      gRecMRLine."Outstanding Quantity" + xRec.Quantity);
                             gCUMRFunct.updOutstandingQtyMR(gRecMRLine, Rec.RecordID, Quantity);
                         END;
                     END;
                 END;
-                "Qty to PO" := Quantity;
-                "Outstanding Quantity" := Quantity;
+
+
                 "Line Amount" := Quantity * "Direct Unit Cost";
-                // Tambahkan baris berikut agar Total Amount juga ikut update
-                "Total Amount" := "Line Amount" + "VAT Amount"; // Atau sesuai formula Anda
-                                                                // Panggil UpdateGLBudgetAmount agar budget langsung update
+                "Total Amount" := "Line Amount" + "VAT Amount";
+
+                // Qty to PO default = Qty PR; kalau user sudah mengubahnya manual, nilai user dipertahankan
+                lBolQtyToPOFollow := ("Qty to PO" = 0) OR ("Qty to PO" = xRec."Outstanding Quantity");
+                RecalcOutstanding();
+                IF lBolQtyToPOFollow THEN
+                    "Qty to PO" := "Outstanding Quantity";
             end;
         }
 
@@ -1094,7 +1111,7 @@ table 50104 "PR Material Line"
                     VALIDATE("VAT Bus. Posting Group", '');
 
                 END;
-                IF "Type" = "Type"::Item THEN VALIDATE("Direct Unit Cost", gCUMSIFunct.getPurchPrice("Vendor No.", "Item No.", "Document Date"));
+                IF "Type" = "Type"::Item THEN VALIDATE("Direct Unit Cost", GetDefaultUnitCost());
             end;
         }
         field(43; "Document Date"; Date)
@@ -1103,7 +1120,7 @@ table 50104 "PR Material Line"
 
             trigger OnValidate()
             begin
-                VALIDATE("Direct Unit Cost", gCUMSIFunct.getPurchPrice("Vendor No.", "Item No.", "Document Date"));
+                IF "Type" = "Type"::Item THEN VALIDATE("Direct Unit Cost", GetDefaultUnitCost());
             end;
         }
         field(44; "MR Usage Category"; Code[50])
@@ -1130,9 +1147,13 @@ table 50104 "PR Material Line"
         {
             Caption = 'Qty to PO';
             DataClassification = ToBeClassified;
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+
             trigger OnValidate()
             begin
-                IF "Qty to PO" > "Outstanding Quantity" then Error('Qty to PO cannot input more then %1', "Outstanding Quantity");
+                IF "Qty to PO" > "Outstanding Quantity" THEN
+                    Error('Qty to PO tidak boleh lebih dari sisa %1.', "Outstanding Quantity");
             end;
         }
         field(49; "VAT Bus. Posting Group"; Code[20])
@@ -1234,8 +1255,26 @@ table 50104 "PR Material Line"
             CalcFormula = lookup("PR Material Header"."Item Category Code" where("Purchase Req. No." = field("Purchase Req. No.")));
             Editable = false;
         }
+        field(66; "Qty to RFQ"; Decimal)
+        {
+            Caption = 'Qty to RFQ';
+            DataClassification = ToBeClassified;
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
 
-
+            trigger OnValidate()
+            begin
+                IF "Qty to RFQ" > "Outstanding Quantity" THEN
+                    Error('Qty to RFQ tidak boleh lebih dari sisa %1.', "Outstanding Quantity");
+            end;
+        }
+        field(67; "Qty Transferred to PO"; Decimal)
+        {
+            Caption = 'Qty Transferred to PO';
+            DataClassification = ToBeClassified;
+            DecimalPlaces = 0 : 5;
+            Editable = false;
+        }
 
 
 
@@ -1249,6 +1288,9 @@ table 50104 "PR Material Line"
         {
             Clustered = true;
         }
+        key(VendorIdx; "Purchase Req. No.", "Vendor No.", "Line No.")
+        {
+        }
     }
     fieldgroups
     {
@@ -1257,6 +1299,7 @@ table 50104 "PR Material Line"
         grecFA: Record "Fixed Asset";
 
     trigger OnInsert()
+
     var
         lRecPRHeader: Record "PR Material Header";
     begin
@@ -1279,6 +1322,7 @@ table 50104 "PR Material Line"
         "Created Date" := CurrentDateTime;
         "Last Modified By" := UserID;
         "Last Modified Date" := CurrentDateTime;
+        RecalcOutstanding();
     end;
 
     trigger OnModify()
@@ -1417,6 +1461,37 @@ table 50104 "PR Material Line"
         Rec."GL Available Budget" := TotalBudget - TotalActual - TotalCommitment;
     end;
 
+    procedure GetDefaultUnitCost(): Decimal
+    var
+        lRecItem: Record Item;
+        lDecPrice: Decimal;
+    begin
+        // Prioritas: Price List vendor/All Vendors, lalu harga di master Item
+        lDecPrice := gCUMSIFunct.getPurchPrice("Vendor No.", "Item No.", "Document Date");
+        IF lDecPrice <> 0 THEN
+            exit(lDecPrice);
+        IF lRecItem.GET("Item No.") THEN BEGIN
+            IF lRecItem."Last Direct Cost" <> 0 THEN
+                exit(lRecItem."Last Direct Cost");
+            exit(lRecItem."Unit Cost");
+        END;
+        exit(0);
+    end;
+
+    procedure RecalcOutstanding()
+    begin
+        CalcFields("Total Qty On PO", "Total Qty On RFQ");
+
+        "Outstanding Quantity" := Quantity - "Total Qty On PO" - "Total Qty On RFQ";
+        IF "Outstanding Quantity" < 0 THEN
+            "Outstanding Quantity" := 0;
+
+        IF "Qty to PO" > "Outstanding Quantity" THEN
+            "Qty to PO" := "Outstanding Quantity";
+        IF "Qty to RFQ" > "Outstanding Quantity" THEN
+            "Qty to RFQ" := "Outstanding Quantity";
+    end;
+
     var
         gRecMRLine: Record "Material Req. Line";
         gRecItem: Record Item;
@@ -1425,5 +1500,6 @@ table 50104 "PR Material Line"
         gCUPRFunct: Codeunit "PR Material Function";
         gCUMSIFunct: Codeunit "MII Function";
         gdecSisa: Decimal;
+        QtyBelowProcessedErr: Label 'Quantity %1 tidak boleh lebih kecil dari yang sudah diproses ke PO/RFQ (%2). Hapus PO atau RFQ-nya dulu.', Comment = '%1 = qty baru, %2 = qty sudah diproses';
 }
 

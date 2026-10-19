@@ -1217,6 +1217,7 @@ page 50139 "RFQ Card"
                     lrecRFQLineDetails.RESET();
                     lrecRFQLineDetails.SetCurrentKey("Entry No.");
                     lrecRFQLineDetails.SETRANGE("RFQ No.", Rec."RFQ No.");
+                    lrecRFQLineDetails.SETFILTER("Vendor Name", '<>%1', '');
                     lrecRFQLineDetails.Ascending(TRUE);
                     IF lrecRFQLineDetails.FIND('-') THEN PAGE.RUN(PAGE::"List RFQ Line Details", lrecRFQLineDetails);
                 end;

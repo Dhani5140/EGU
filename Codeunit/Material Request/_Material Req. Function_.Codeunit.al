@@ -31,7 +31,7 @@ codeunit 50101 "Material Req. Function"
         lRecMRLine: Record "Material Req. Line";
     begin
         //Tolong di cek kembali
-        // MRHeader.Testfield("Location Code");
+        MRHeader.Testfield("Location Code");
         // MRHeader.TestField("Shortcut Dimension 1 Code");
         // MRHeader.TestField("Shortcut Dimension 3 Code");
         // MRHeader.TestField("Requester Department");
@@ -239,217 +239,337 @@ codeunit 50101 "Material Req. Function"
             UNTIL lRecMRLine.NEXT = 0;
         END
     end;
+
+    //AFTER
     //Check
     //UpdateOutstanding
+    // procedure updOutstandingQtyMR(var ParMRLine: Record "Material Req. Line"; fromRecordID: RecordID; QtytoUpd: Decimal)
+    // var
+    //     lRecMRHeader: Record "Material Req. Header";
+    //     lRecMRLine: Record "Material Req. Line";
+    //     lRecPRLine: Record "PR Material Line";
+    //     lRecTransLine: Record "Transfer Line";
+    //     lRecTransRcptLine: Record "Transfer Receipt Line";
+    //     lRecInvDocLine: Record "Invt. Document Line";
+    //     lRecInvShptLine: Record "Invt. Shipment Line";
+    //     lRecItemJournalLine: Record "Item Journal Line";
+    //     lRecILE: Record "Item Ledger Entry";
+    //     lDecTotalPRQty: Decimal;
+    //     lDecTotalInvDocQty: Decimal;
+    //     lDecTotalItemJournalQty: Decimal;
+    //     lDecOutstandingInvShip: Decimal;
+    //     lDecOutstandingQty: Decimal;
+    //     StatusInt: Integer;
+    // begin
+    //     CLEAR(lDecTotalPRQty);
+    //     CLEAR(lDecTotalInvDocQty);
+    //     CLEAR(lDecOutstandingQty);
+    //     CLEAR(lDecTotalItemJournalQty);
+    //     CLEAR(lDecOutstandingInvShip);
+    //     CASE fromRecordID.TableNo OF
+    //         database::"PR Material Line":
+    //             BEGIN
+    //                 lRecPRLine.RESET;
+    //                 lRecPRLine.SETRANGE(lRecPRLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecPRLine.SETRANGE(lRecPRLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecPRLine.FIND('-') THEN BEGIN
+    //                     lRecPRLine.CalcSums(Quantity);
+    //                     lDecTotalPRQty += ABS(lRecPRLine.Quantity);
+    //                 END;
+    //                 lRecInvDocLine.RESET;
+    //                 lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecInvDocLine.FIND('-') THEN BEGIN
+    //                     lRecInvDocLine.CalcSums(Quantity);
+    //                     lDecTotalInvDocQty += ABS(lRecInvDocLine.Quantity);
+    //                 END;
+    //                 lRecInvShptLine.RESET;
+    //                 lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecInvShptLine.FIND('-') THEN BEGIN
+    //                     lRecInvShptLine.CalcSums(Quantity);
+    //                     lDecTotalInvDocQty += ABS(lRecInvShptLine.Quantity);
+    //                 END;
+    //                 lRecItemJournalLine.RESET;
+    //                 lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecItemJournalLine.FIND('-') THEN BEGIN
+    //                     lRecItemJournalLine.CalcSums(Quantity);
+    //                     lDecTotalItemJournalQty += ABS(lRecItemJournalLine.Quantity);
+    //                 END;
+    //                 lRecILE.RESET;
+    //                 lRecILE.SETRANGE(lRecILE."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecILE.SETRANGE(lRecILE."Material Req. Line No.", ParMRLine."Line No.");
+    //                 lRecILE.SETRANGE("Entry Type", lRecILE."Entry Type"::"Negative Adjmt.");
+    //                 lRecILE.SETRANGE("Item Journal MR", TRUE);
+    //                 IF lRecILE.FIND('-') THEN BEGIN
+    //                     lRecILE.CalcSums(Quantity);
+    //                     lDecTotalItemJournalQty += ABS(lRecILE.Quantity);
+    //                 END;
+    //                 lRecPRLine.RESET;
+    //                 lRecPRLine.GET(fromRecordID);
+    //                 lDecTotalPRQty := lDecTotalPRQty - lRecPRLine.Quantity;
+    //             END;
+    //         database::"Invt. Document Line":
+    //             BEGIN
+    //                 lRecPRLine.RESET;
+    //                 lRecPRLine.SETRANGE(lRecPRLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecPRLine.SETRANGE(lRecPRLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecPRLine.FIND('-') THEN BEGIN
+    //                     lRecPRLine.CalcSums(Quantity);
+    //                     lDecTotalPRQty += ABS(lRecPRLine.Quantity);
+    //                 END;
+    //                 lRecItemJournalLine.RESET;
+    //                 lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecItemJournalLine.FIND('-') THEN BEGIN
+    //                     lRecItemJournalLine.CalcSums(Quantity);
+    //                     lDecTotalItemJournalQty += ABS(lRecItemJournalLine.Quantity);
+    //                 END;
+    //                 lRecILE.RESET;
+    //                 lRecILE.SETRANGE(lRecILE."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecILE.SETRANGE(lRecILE."Material Req. Line No.", ParMRLine."Line No.");
+    //                 lRecILE.SETRANGE("Entry Type", lRecILE."Entry Type"::"Negative Adjmt.");
+    //                 lRecILE.SETRANGE("Item Journal MR", TRUE);
+    //                 IF lRecILE.FIND('-') THEN BEGIN
+    //                     lRecILE.CalcSums(Quantity);
+    //                     lDecTotalItemJournalQty += ABS(lRecILE.Quantity);
+    //                 END;
+    //                 lRecInvDocLine.RESET;
+    //                 lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecInvDocLine.FIND('-') THEN BEGIN
+    //                     lRecInvDocLine.CalcSums(Quantity);
+    //                     lDecTotalInvDocQty += ABS(lRecInvDocLine.Quantity);
+    //                 END;
+    //                 lRecInvDocLine.RESET;
+    //                 lRecInvDocLine.GET(fromRecordID);
+    //                 lDecTotalInvDocQty := lDecTotalInvDocQty - lRecInvDocLine.Quantity;
+    //                 // IF (lDecTotalInvDocQty = 0) OR (QtytoUpd = 0) THEN BEGIN
+    //                 lRecInvShptLine.RESET;
+    //                 lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecInvShptLine.FIND('-') THEN BEGIN
+    //                     lRecInvShptLine.CalcSums(Quantity);
+    //                     lDecTotalInvDocQty += ABS(lRecInvShptLine.Quantity);
+    //                 END;
+    //                 // END;
+    //             END;
+    //         database::"Item Journal Line":
+    //             BEGIN
+    //                 lRecPRLine.RESET;
+    //                 lRecPRLine.SETRANGE(lRecPRLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecPRLine.SETRANGE(lRecPRLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecPRLine.FIND('-') THEN BEGIN
+    //                     lRecPRLine.CalcSums(Quantity);
+    //                     lDecTotalPRQty += ABS(lRecPRLine.Quantity);
+    //                 END;
+    //                 lRecInvDocLine.RESET;
+    //                 lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecInvDocLine.FIND('-') THEN BEGIN
+    //                     lRecInvDocLine.CalcSums(Quantity);
+    //                     lDecTotalInvDocQty += ABS(lRecInvDocLine.Quantity);
+    //                 END;
+    //                 lRecInvShptLine.RESET;
+    //                 lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecInvShptLine.FIND('-') THEN BEGIN
+    //                     lRecInvShptLine.CalcSums(Quantity);
+    //                     lDecTotalInvDocQty += ABS(lRecInvShptLine.Quantity);
+    //                 END;
+    //                 lRecItemJournalLine.RESET;
+    //                 lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. Line No.", ParMRLine."Line No.");
+    //                 IF lRecItemJournalLine.FIND('-') THEN BEGIN
+    //                     lRecItemJournalLine.CalcSums(Quantity);
+    //                     lDecTotalItemJournalQty += ABS(lRecItemJournalLine.Quantity);
+    //                 END;
+    //                 lRecItemJournalLine.RESET;
+    //                 lRecItemJournalLine.GET(fromRecordID);
+    //                 lDecTotalItemJournalQty := lDecTotalItemJournalQty - lRecItemJournalLine.Quantity;
+    //                 // IF (lDecTotalItemJournalQty = 0) OR (QtytoUpd = 0) THEN BEGIN
+    //                 lRecILE.RESET;
+    //                 lRecILE.SETRANGE(lRecILE."Material Req. No.", ParMRLine."Material Req. No.");
+    //                 lRecILE.SETRANGE(lRecILE."Material Req. Line No.", ParMRLine."Line No.");
+    //                 lRecILE.SETRANGE("Entry Type", lRecILE."Entry Type"::"Negative Adjmt.");
+    //                 lRecILE.SETRANGE("Item Journal MR", TRUE);
+    //                 IF lRecILE.FIND('-') THEN BEGIN
+    //                     lRecILE.CalcSums(Quantity);
+    //                     lDecTotalItemJournalQty += ABS(lRecILE.Quantity);
+    //                 END;
+    //                 // END;
+    //             END;
+    //     // database::"Transfer Line":
+    //     //     BEGIN
+    //     //         lRecPRLine.RESET;
+    //     //         lRecPRLine.SETRANGE(lRecPRLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //     //         lRecPRLine.SETRANGE(lRecPRLine."Material Req. Line No.", ParMRLine."Line No.");
+    //     //         IF lRecPRLine.FIND('-') THEN BEGIN
+    //     //             lRecPRLine.CalcSums(Quantity);
+    //     //             lDecTotalPRQty := lRecPRLine.Quantity;
+    //     //         END;
+    //     //         lRecTransLine.RESET;
+    //     //         lRecTransLine.SETRANGE(lRecTransLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //     //         lRecTransLine.SETRANGE(lRecTransLine."Material Req. Line No.", ParMRLine."Line No.");
+    //     //         IF lRecTransLine.FIND('-') THEN BEGIN
+    //     //             lRecTransLine.CalcSums(Quantity);
+    //     //             lDecTotalTOQty := lRecTransLine.Quantity;
+    //     //         END;
+    //     //         lRecTransLine.RESET;
+    //     //         lRecTransLine.GET(fromRecordID);
+    //     //         lDecTotalTOQty := lDecTotalTOQty - lRecTransLine.Quantity;
+    //     //         IF (lDecTotalTOQty = 0) OR (QtytoUpd = 0) THEN BEGIN
+    //     //             lRecTransRcptLine.RESET;
+    //     //             lRecTransRcptLine.SETRANGE(lRecTransRcptLine."Material Req. No.", ParMRLine."Material Req. No.");
+    //     //             lRecTransRcptLine.SETRANGE(lRecTransRcptLine."Material Req. Line No.", ParMRLine."Line No.");
+    //     //             IF lRecTransRcptLine.FIND('-') THEN BEGIN
+    //     //                 lRecTransRcptLine.CalcSums(Quantity);
+    //     //                 lDecTotalTOQty := lRecTransRcptLine.Quantity;
+    //     //             END;
+    //     //         END;
+    //     //     END;
+    //     END;
+    //     lDecTotalPRQty := ABS(lDecTotalPRQty);
+    //     lDecTotalInvDocQty := ABS(lDecTotalInvDocQty);
+    //     lDecTotalItemJournalQty := ABS(lDecTotalItemJournalQty);
+    //     lDecOutstandingQty := ParMRLine.Quantity - lDecTotalPRQty - lDecTotalInvDocQty - lDecTotalItemJournalQty - QtytoUpd;
+    //     IF lDecOutstandingQty > 0 THEN BEGIN
+    //         ParMRLine."Outstanding Quantity" := lDecOutstandingQty;
+    //     END
+    //     ELSE BEGIN
+    //         ParMRLine."Outstanding Quantity" := 0;
+    //     END;
+    //     IF fromRecordID.TableNo IN [Database::"Item Journal Line", Database::"Invt. Document Line"] THEN BEGIN
+    //         lDecOutstandingInvShip := ParMRLine.Quantity - lDecTotalInvDocQty - lDecTotalItemJournalQty - QtytoUpd;
+    //         IF lDecOutstandingInvShip > 0 THEN BEGIN
+    //             ParMRLine."Outstanding Qty Invt. Shpt" := lDecOutstandingInvShip;
+    //         END
+    //         ELSE BEGIN
+    //             ParMRLine."Outstanding Qty Invt. Shpt" := 0;
+    //         END;
+    //     END;
+    //     ParMRLine.MODIFY;
+    //     closedStatus_MR(ParMRLine."Material Req. No.");
+    //     // END;
+    // end;
+
+
     procedure updOutstandingQtyMR(var ParMRLine: Record "Material Req. Line"; fromRecordID: RecordID; QtytoUpd: Decimal)
     var
-        lRecMRHeader: Record "Material Req. Header";
-        lRecMRLine: Record "Material Req. Line";
         lRecPRLine: Record "PR Material Line";
-        lRecTransLine: Record "Transfer Line";
-        lRecTransRcptLine: Record "Transfer Receipt Line";
         lRecInvDocLine: Record "Invt. Document Line";
-        lRecInvShptLine: Record "Invt. Shipment Line";
         lRecItemJournalLine: Record "Item Journal Line";
-        lRecILE: Record "Item Ledger Entry";
         lDecTotalPRQty: Decimal;
         lDecTotalInvDocQty: Decimal;
         lDecTotalItemJournalQty: Decimal;
-        lDecOutstandingInvShip: Decimal;
         lDecOutstandingQty: Decimal;
-        StatusInt: Integer;
+        lDecOutstandingInvShip: Decimal;
     begin
-        CLEAR(lDecTotalPRQty);
-        CLEAR(lDecTotalInvDocQty);
-        CLEAR(lDecOutstandingQty);
-        CLEAR(lDecTotalItemJournalQty);
-        CLEAR(lDecOutstandingInvShip);
+
+        lDecTotalPRQty := SumQtyOnPR(ParMRLine."Material Req. No.", ParMRLine."Line No.");
+        lDecTotalInvDocQty := SumQtyOnInvtDoc(ParMRLine."Material Req. No.", ParMRLine."Line No.");
+        lDecTotalItemJournalQty := SumQtyOnItemJnl(ParMRLine."Material Req. No.", ParMRLine."Line No.");
+
+
         CASE fromRecordID.TableNo OF
-            database::"PR Material Line":
-                BEGIN
-                    lRecPRLine.RESET;
-                    lRecPRLine.SETRANGE(lRecPRLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecPRLine.SETRANGE(lRecPRLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecPRLine.FIND('-') THEN BEGIN
-                        lRecPRLine.CalcSums(Quantity);
-                        lDecTotalPRQty += ABS(lRecPRLine.Quantity);
-                    END;
-                    lRecInvDocLine.RESET;
-                    lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecInvDocLine.FIND('-') THEN BEGIN
-                        lRecInvDocLine.CalcSums(Quantity);
-                        lDecTotalInvDocQty += ABS(lRecInvDocLine.Quantity);
-                    END;
-                    lRecInvShptLine.RESET;
-                    lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecInvShptLine.FIND('-') THEN BEGIN
-                        lRecInvShptLine.CalcSums(Quantity);
-                        lDecTotalInvDocQty += ABS(lRecInvShptLine.Quantity);
-                    END;
-                    lRecItemJournalLine.RESET;
-                    lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecItemJournalLine.FIND('-') THEN BEGIN
-                        lRecItemJournalLine.CalcSums(Quantity);
-                        lDecTotalItemJournalQty += ABS(lRecItemJournalLine.Quantity);
-                    END;
-                    lRecILE.RESET;
-                    lRecILE.SETRANGE(lRecILE."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecILE.SETRANGE(lRecILE."Material Req. Line No.", ParMRLine."Line No.");
-                    lRecILE.SETRANGE("Entry Type", lRecILE."Entry Type"::"Negative Adjmt.");
-                    lRecILE.SETRANGE("Item Journal MR", TRUE);
-                    IF lRecILE.FIND('-') THEN BEGIN
-                        lRecILE.CalcSums(Quantity);
-                        lDecTotalItemJournalQty += ABS(lRecILE.Quantity);
-                    END;
-                    lRecPRLine.RESET;
-                    lRecPRLine.GET(fromRecordID);
-                    lDecTotalPRQty := lDecTotalPRQty - lRecPRLine.Quantity;
-                END;
-            database::"Invt. Document Line":
-                BEGIN
-                    lRecPRLine.RESET;
-                    lRecPRLine.SETRANGE(lRecPRLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecPRLine.SETRANGE(lRecPRLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecPRLine.FIND('-') THEN BEGIN
-                        lRecPRLine.CalcSums(Quantity);
-                        lDecTotalPRQty += ABS(lRecPRLine.Quantity);
-                    END;
-                    lRecItemJournalLine.RESET;
-                    lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecItemJournalLine.FIND('-') THEN BEGIN
-                        lRecItemJournalLine.CalcSums(Quantity);
-                        lDecTotalItemJournalQty += ABS(lRecItemJournalLine.Quantity);
-                    END;
-                    lRecILE.RESET;
-                    lRecILE.SETRANGE(lRecILE."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecILE.SETRANGE(lRecILE."Material Req. Line No.", ParMRLine."Line No.");
-                    lRecILE.SETRANGE("Entry Type", lRecILE."Entry Type"::"Negative Adjmt.");
-                    lRecILE.SETRANGE("Item Journal MR", TRUE);
-                    IF lRecILE.FIND('-') THEN BEGIN
-                        lRecILE.CalcSums(Quantity);
-                        lDecTotalItemJournalQty += ABS(lRecILE.Quantity);
-                    END;
-                    lRecInvDocLine.RESET;
-                    lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecInvDocLine.FIND('-') THEN BEGIN
-                        lRecInvDocLine.CalcSums(Quantity);
-                        lDecTotalInvDocQty += ABS(lRecInvDocLine.Quantity);
-                    END;
-                    lRecInvDocLine.RESET;
-                    lRecInvDocLine.GET(fromRecordID);
-                    lDecTotalInvDocQty := lDecTotalInvDocQty - lRecInvDocLine.Quantity;
-                    // IF (lDecTotalInvDocQty = 0) OR (QtytoUpd = 0) THEN BEGIN
-                    lRecInvShptLine.RESET;
-                    lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecInvShptLine.FIND('-') THEN BEGIN
-                        lRecInvShptLine.CalcSums(Quantity);
-                        lDecTotalInvDocQty += ABS(lRecInvShptLine.Quantity);
-                    END;
-                    // END;
-                END;
-            database::"Item Journal Line":
-                BEGIN
-                    lRecPRLine.RESET;
-                    lRecPRLine.SETRANGE(lRecPRLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecPRLine.SETRANGE(lRecPRLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecPRLine.FIND('-') THEN BEGIN
-                        lRecPRLine.CalcSums(Quantity);
-                        lDecTotalPRQty += ABS(lRecPRLine.Quantity);
-                    END;
-                    lRecInvDocLine.RESET;
-                    lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecInvDocLine.SETRANGE(lRecInvDocLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecInvDocLine.FIND('-') THEN BEGIN
-                        lRecInvDocLine.CalcSums(Quantity);
-                        lDecTotalInvDocQty += ABS(lRecInvDocLine.Quantity);
-                    END;
-                    lRecInvShptLine.RESET;
-                    lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecInvShptLine.SETRANGE(lRecInvShptLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecInvShptLine.FIND('-') THEN BEGIN
-                        lRecInvShptLine.CalcSums(Quantity);
-                        lDecTotalInvDocQty += ABS(lRecInvShptLine.Quantity);
-                    END;
-                    lRecItemJournalLine.RESET;
-                    lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecItemJournalLine.SETRANGE(lRecItemJournalLine."Material Req. Line No.", ParMRLine."Line No.");
-                    IF lRecItemJournalLine.FIND('-') THEN BEGIN
-                        lRecItemJournalLine.CalcSums(Quantity);
-                        lDecTotalItemJournalQty += ABS(lRecItemJournalLine.Quantity);
-                    END;
-                    lRecItemJournalLine.RESET;
-                    lRecItemJournalLine.GET(fromRecordID);
-                    lDecTotalItemJournalQty := lDecTotalItemJournalQty - lRecItemJournalLine.Quantity;
-                    // IF (lDecTotalItemJournalQty = 0) OR (QtytoUpd = 0) THEN BEGIN
-                    lRecILE.RESET;
-                    lRecILE.SETRANGE(lRecILE."Material Req. No.", ParMRLine."Material Req. No.");
-                    lRecILE.SETRANGE(lRecILE."Material Req. Line No.", ParMRLine."Line No.");
-                    lRecILE.SETRANGE("Entry Type", lRecILE."Entry Type"::"Negative Adjmt.");
-                    lRecILE.SETRANGE("Item Journal MR", TRUE);
-                    IF lRecILE.FIND('-') THEN BEGIN
-                        lRecILE.CalcSums(Quantity);
-                        lDecTotalItemJournalQty += ABS(lRecILE.Quantity);
-                    END;
-                    // END;
-                END;
-        // database::"Transfer Line":
-        //     BEGIN
-        //         lRecPRLine.RESET;
-        //         lRecPRLine.SETRANGE(lRecPRLine."Material Req. No.", ParMRLine."Material Req. No.");
-        //         lRecPRLine.SETRANGE(lRecPRLine."Material Req. Line No.", ParMRLine."Line No.");
-        //         IF lRecPRLine.FIND('-') THEN BEGIN
-        //             lRecPRLine.CalcSums(Quantity);
-        //             lDecTotalPRQty := lRecPRLine.Quantity;
-        //         END;
-        //         lRecTransLine.RESET;
-        //         lRecTransLine.SETRANGE(lRecTransLine."Material Req. No.", ParMRLine."Material Req. No.");
-        //         lRecTransLine.SETRANGE(lRecTransLine."Material Req. Line No.", ParMRLine."Line No.");
-        //         IF lRecTransLine.FIND('-') THEN BEGIN
-        //             lRecTransLine.CalcSums(Quantity);
-        //             lDecTotalTOQty := lRecTransLine.Quantity;
-        //         END;
-        //         lRecTransLine.RESET;
-        //         lRecTransLine.GET(fromRecordID);
-        //         lDecTotalTOQty := lDecTotalTOQty - lRecTransLine.Quantity;
-        //         IF (lDecTotalTOQty = 0) OR (QtytoUpd = 0) THEN BEGIN
-        //             lRecTransRcptLine.RESET;
-        //             lRecTransRcptLine.SETRANGE(lRecTransRcptLine."Material Req. No.", ParMRLine."Material Req. No.");
-        //             lRecTransRcptLine.SETRANGE(lRecTransRcptLine."Material Req. Line No.", ParMRLine."Line No.");
-        //             IF lRecTransRcptLine.FIND('-') THEN BEGIN
-        //                 lRecTransRcptLine.CalcSums(Quantity);
-        //                 lDecTotalTOQty := lRecTransRcptLine.Quantity;
-        //             END;
-        //         END;
-        //     END;
+            Database::"PR Material Line":
+                IF lRecPRLine.GET(fromRecordID) THEN
+                    lDecTotalPRQty -= ABS(lRecPRLine.Quantity);
+            Database::"Invt. Document Line":
+                IF lRecInvDocLine.GET(fromRecordID) THEN
+                    lDecTotalInvDocQty -= ABS(lRecInvDocLine.Quantity);
+            Database::"Item Journal Line":
+                IF lRecItemJournalLine.GET(fromRecordID) THEN
+                    lDecTotalItemJournalQty -= ABS(lRecItemJournalLine.Quantity);
         END;
-        lDecTotalPRQty := ABS(lDecTotalPRQty);
-        lDecTotalInvDocQty := ABS(lDecTotalInvDocQty);
-        lDecTotalItemJournalQty := ABS(lDecTotalItemJournalQty);
-        lDecOutstandingQty := ParMRLine.Quantity - lDecTotalPRQty - lDecTotalInvDocQty - lDecTotalItemJournalQty - QtytoUpd;
-        IF lDecOutstandingQty > 0 THEN BEGIN
-            ParMRLine."Outstanding Quantity" := lDecOutstandingQty;
-        END
-        ELSE BEGIN
+
+        IF lDecTotalPRQty < 0 THEN
+            lDecTotalPRQty := 0;
+        IF lDecTotalInvDocQty < 0 THEN
+            lDecTotalInvDocQty := 0;
+        IF lDecTotalItemJournalQty < 0 THEN
+            lDecTotalItemJournalQty := 0;
+
+
+        lDecOutstandingQty := ParMRLine.Quantity
+                              - lDecTotalPRQty
+                              - lDecTotalInvDocQty
+                              - lDecTotalItemJournalQty
+                              - QtytoUpd;
+
+        IF lDecOutstandingQty > 0 THEN
+            ParMRLine."Outstanding Quantity" := lDecOutstandingQty
+        ELSE
             ParMRLine."Outstanding Quantity" := 0;
-        END;
+
+
         IF fromRecordID.TableNo IN [Database::"Item Journal Line", Database::"Invt. Document Line"] THEN BEGIN
-            lDecOutstandingInvShip := ParMRLine.Quantity - lDecTotalInvDocQty - lDecTotalItemJournalQty - QtytoUpd;
-            IF lDecOutstandingInvShip > 0 THEN BEGIN
-                ParMRLine."Outstanding Qty Invt. Shpt" := lDecOutstandingInvShip;
-            END
-            ELSE BEGIN
+            lDecOutstandingInvShip := ParMRLine.Quantity
+                                      - lDecTotalInvDocQty
+                                      - lDecTotalItemJournalQty
+                                      - QtytoUpd;
+
+            IF lDecOutstandingInvShip > 0 THEN
+                ParMRLine."Outstanding Qty Invt. Shpt" := lDecOutstandingInvShip
+            ELSE
                 ParMRLine."Outstanding Qty Invt. Shpt" := 0;
-            END;
         END;
+
+
+        ParMRLine."Qty to PR" := ParMRLine."Outstanding Quantity";
+
         ParMRLine.MODIFY;
         closedStatus_MR(ParMRLine."Material Req. No.");
-        // END;
+    end;
+
+    local procedure SumQtyOnPR(MRNo: Code[50]; MRLineNo: Integer): Decimal
+    var
+        lRecPRLine: Record "PR Material Line";
+    begin
+        lRecPRLine.RESET;
+        lRecPRLine.SETRANGE("Material Req. No.", MRNo);
+        lRecPRLine.SETRANGE("Material Req. Line No.", MRLineNo);
+        lRecPRLine.CalcSums(Quantity);
+        EXIT(ABS(lRecPRLine.Quantity));
+    end;
+
+    local procedure SumQtyOnInvtDoc(MRNo: Code[50]; MRLineNo: Integer): Decimal
+    var
+        lRecInvDocLine: Record "Invt. Document Line";
+        lRecInvShptLine: Record "Invt. Shipment Line";
+    begin
+        lRecInvDocLine.RESET;
+        lRecInvDocLine.SETRANGE("Material Req. No.", MRNo);
+        lRecInvDocLine.SETRANGE("Material Req. Line No.", MRLineNo);
+        lRecInvDocLine.CalcSums(Quantity);
+
+        lRecInvShptLine.RESET;
+        lRecInvShptLine.SETRANGE("Material Req. No.", MRNo);
+        lRecInvShptLine.SETRANGE("Material Req. Line No.", MRLineNo);
+        lRecInvShptLine.CalcSums(Quantity);
+
+        EXIT(ABS(lRecInvDocLine.Quantity) + ABS(lRecInvShptLine.Quantity));
+    end;
+
+    local procedure SumQtyOnItemJnl(MRNo: Code[50]; MRLineNo: Integer): Decimal
+    var
+        lRecItemJournalLine: Record "Item Journal Line";
+        lRecILE: Record "Item Ledger Entry";
+    begin
+        lRecItemJournalLine.RESET;
+        lRecItemJournalLine.SETRANGE("Material Req. No.", MRNo);
+        lRecItemJournalLine.SETRANGE("Material Req. Line No.", MRLineNo);
+        lRecItemJournalLine.CalcSums(Quantity);
+
+        lRecILE.RESET;
+        lRecILE.SETRANGE("Material Req. No.", MRNo);
+        lRecILE.SETRANGE("Material Req. Line No.", MRLineNo);
+        lRecILE.SETRANGE("Entry Type", lRecILE."Entry Type"::"Negative Adjmt.");
+        lRecILE.SETRANGE("Item Journal MR", TRUE);
+        lRecILE.CalcSums(Quantity);
+
+        EXIT(ABS(lRecItemJournalLine.Quantity) + ABS(lRecILE.Quantity));
     end;
 
     procedure updQtyInvtShipReceipt(var ParMRLine: Record "Material Req. Line"; fromRecordID: RecordID; QtytoUpd: Decimal)
@@ -493,76 +613,141 @@ codeunit 50101 "Material Req. Function"
         // END;
     end;
 
+    //after
+
+    // procedure closedStatus_MR(MRNo: Code[20])
+    // var
+    //     lRecMRHeader: Record "Material Req. Header";
+    //     lRecMRLine: Record "Material Req. Line";
+    //     isOutstanding: Boolean;
+    //     isOutstandingInvShip: Boolean;
+    //     hasProcess: Boolean;
+    //     hasLine: Boolean;
+    //     allCancel: Boolean;
+    //     statusInt: integer;
+    // begin
+    //     isOutstanding := FALSE;
+    //     isOutstandingInvShip := FALSE;
+    //     hasLine := FALSE;
+    //     hasProcess := FALSE;
+    //     allCancel := TRUE;
+    //     statusInt := 0;
+    //     lRecMRLine.RESET;
+    //     lRecMRLine.SETRANGE(lRecMRLine."Material Req. No.", MRNo);
+    //     IF lRecMRLine.FIND('-') THEN BEGIN
+    //         REPEAT
+    //             hasLine := TRUE;
+    //             IF lRecMRLine.Cancel = FALSE THEN BEGIN
+    //                 allCancel := FALSE;
+    //                 IF lRecMRLine.Quantity > lRecMRLine."Outstanding Quantity" THEN hasProcess := TRUE;
+    //                 IF lRecMRLine."Outstanding Quantity" > 0 THEN isOutstanding := TRUE;
+    //                 IF lRecMRLine."Outstanding Qty Invt. Shpt" > 0 THEN isOutstandingInvShip := TRUE;
+    //             END;
+    //         UNTIL (lRecMRLine.NEXT = 0);
+    //     END;
+    //     IF hasLine THEN BEGIN
+    //         IF allCancel THEN BEGIN
+    //             statusInt := 4;
+    //         END
+    //         ELSE BEGIN
+    //             IF hasProcess THEN BEGIN
+    //                 IF isOutstanding THEN BEGIN
+    //                     statusInt := 2;
+    //                 END
+    //                 ELSE BEGIN
+    //                     IF isOutstandingInvShip THEN
+    //                         statusInt := 2
+    //                     ELSE
+    //                         statusInt := 3;
+    //                 END;
+    //             END
+    //             ELSE BEGIN
+    //                 statusInt := 1;
+    //             END;
+    //         END;
+    //     END
+    //     ELSE BEGIN
+    //         statusInt := 3;
+    //     END;
+    //     IF statusInt <> 0 THEN BEGIN
+    //         lRecMRHeader.RESET;
+    //         lRecMRHeader.SETRANGE(lRecMRHeader."Material Req. No.", MRNo);
+    //         IF lRecMRHeader.FINDFIRST THEN BEGIN
+    //             Case StatusInt OF
+    //                 1:
+    //                     lRecMRHeader.VALIDATE(Status, lRecMRHeader.Status::Released);
+    //                 2:
+    //                     lRecMRHeader.VALIDATE(Status, lRecMRHeader.Status::"Partial Receive / Processed On PR");
+    //                 3:
+    //                     lRecMRHeader.VALIDATE(Status, lRecMRHeader.Status::Closed);
+    //                 4:
+    //                     lRecMRHeader.Validate(Status, lRecMRHeader.Status::Canceled);
+    //             END;
+    //             lRecMRHeader.MODIFY;
+    //         END;
+    //     END;
+    // end;
+
+
     procedure closedStatus_MR(MRNo: Code[20])
     var
         lRecMRHeader: Record "Material Req. Header";
         lRecMRLine: Record "Material Req. Line";
+        NewStatus: Enum "PR Module Status";
         isOutstanding: Boolean;
-        isOutstandingInvShip: Boolean;
         hasProcess: Boolean;
         hasLine: Boolean;
         allCancel: Boolean;
-        statusInt: integer;
     begin
-        isOutstanding := FALSE;
-        isOutstandingInvShip := FALSE;
-        hasLine := FALSE;
-        hasProcess := FALSE;
+        IF MRNo = '' THEN
+            EXIT;
+        IF NOT lRecMRHeader.GET(MRNo) THEN
+            EXIT;
+
+        IF NOT (lRecMRHeader.Status IN [lRecMRHeader.Status::Released,
+                                        lRecMRHeader.Status::"Partial Receive / Processed On PR",
+                                        lRecMRHeader.Status::Closed]) THEN
+            EXIT;
+
         allCancel := TRUE;
-        statusInt := 0;
+
         lRecMRLine.RESET;
-        lRecMRLine.SETRANGE(lRecMRLine."Material Req. No.", MRNo);
-        IF lRecMRLine.FIND('-') THEN BEGIN
+        lRecMRLine.SETRANGE("Material Req. No.", MRNo);
+        IF lRecMRLine.FINDSET() THEN
             REPEAT
                 hasLine := TRUE;
-                IF lRecMRLine.Cancel = FALSE THEN BEGIN
+                IF NOT lRecMRLine.Cancel THEN BEGIN
                     allCancel := FALSE;
-                    IF lRecMRLine.Quantity > lRecMRLine."Outstanding Quantity" THEN hasProcess := TRUE;
-                    IF lRecMRLine."Outstanding Quantity" > 0 THEN isOutstanding := TRUE;
-                    IF lRecMRLine."Outstanding Qty Invt. Shpt" > 0 THEN isOutstandingInvShip := TRUE;
+
+
+                    IF lRecMRLine.Quantity > lRecMRLine."Outstanding Quantity" THEN
+                        hasProcess := TRUE;
+
+
+                    IF lRecMRLine."Outstanding Quantity" > 0 THEN
+                        isOutstanding := TRUE;
                 END;
-            UNTIL (lRecMRLine.NEXT = 0);
-        END;
-        IF hasLine THEN BEGIN
-            IF allCancel THEN BEGIN
-                statusInt := 4;
-            END
-            ELSE BEGIN
-                IF hasProcess THEN BEGIN
-                    IF isOutstanding THEN BEGIN
-                        statusInt := 2;
-                    END
-                    ELSE BEGIN
-                        IF isOutstandingInvShip THEN
-                            statusInt := 2
-                        ELSE
-                            statusInt := 3;
-                    END;
-                END
-                ELSE BEGIN
-                    statusInt := 1;
-                END;
-            END;
-        END
-        ELSE BEGIN
-            statusInt := 3;
-        END;
-        IF statusInt <> 0 THEN BEGIN
-            lRecMRHeader.RESET;
-            lRecMRHeader.SETRANGE(lRecMRHeader."Material Req. No.", MRNo);
-            IF lRecMRHeader.FINDFIRST THEN BEGIN
-                Case StatusInt OF
-                    1:
-                        lRecMRHeader.VALIDATE(Status, lRecMRHeader.Status::Released);
-                    2:
-                        lRecMRHeader.VALIDATE(Status, lRecMRHeader.Status::"Partial Receive / Processed On PR");
-                    3:
-                        lRecMRHeader.VALIDATE(Status, lRecMRHeader.Status::Closed);
-                    4:
-                        lRecMRHeader.Validate(Status, lRecMRHeader.Status::Canceled);
-                END;
-                lRecMRHeader.MODIFY;
-            END;
+            UNTIL lRecMRLine.NEXT = 0;
+
+
+        IF NOT hasLine THEN
+            EXIT;
+
+        IF allCancel THEN
+            NewStatus := lRecMRHeader.Status::Canceled
+        ELSE
+            IF NOT hasProcess THEN
+                NewStatus := lRecMRHeader.Status::Released
+            ELSE
+                IF isOutstanding THEN
+                    NewStatus := lRecMRHeader.Status::"Partial Receive / Processed On PR"
+                ELSE
+                    NewStatus := lRecMRHeader.Status::Closed;
+
+
+        IF lRecMRHeader.Status <> NewStatus THEN BEGIN
+            lRecMRHeader.Status := NewStatus;
+            lRecMRHeader.MODIFY(TRUE);
         END;
     end;
 

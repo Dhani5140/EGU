@@ -136,8 +136,16 @@ page 50105 "PR Material Card"
                 field("MR No."; Rec."MR No.")
                 {
                     ApplicationArea = all;
-                    Editable = gBolEditable;
-                    TableRelation = "Material Req. Header"."Material Req. No." where(Status = filter(Released | "Partial Receive / Processed On PR"));
+                    Editable = false;
+                    ToolTip = 'Terisi otomatis dari baris. Kosong artinya baris PR ini berasal dari lebih dari satu Material Request — lihat kolom Material Req. No. di tiap baris.';
+                    TableRelation = "Material Req. Header"."Material Req. No.";
+                }
+                field(MRSource; gTxtMRSource)
+                {
+                    ApplicationArea = all;
+                    Caption = 'Sumber Material Request';
+                    Editable = false;
+                    ToolTip = 'Daftar Material Request yang menjadi asal baris-baris PR ini.';
                 }
                 field(Status; Rec."Status")
                 {
@@ -421,55 +429,177 @@ page 50105 "PR Material Card"
 
                 end;
             }
+            //AFTER
+            // action("Get Material Req.")
+            // {
+            //     Caption = 'Get Material Request';
+            //     ApplicationArea = All;
+            //     Promoted = true;
+            //     PromotedCategory = Process;
+            //     PromotedIsBig = true;
+            //     PromotedOnly = true;
+            //     Image = GetSourceDoc;
+
+            //     trigger OnAction()
+            //     var
+            //         lRecMRLinePage: Record "Material Req. Line";
+            //         lRecMRLine: Record "Material Req. Line";
+            //         lPageSelectMR: Page "Select MR Line";
+            //     begin
+            //         Rec.TestField(Status, Rec.Status::Open);
+            //         Rec.TestField("Location Code");
+            //         // Rec.TestField("Shortcut Dimension 2 Code");
+            //         lRecMRLinePage.RESET;
+            //         lRecMRLinePage.SETFILTER(Quantity, '>%1', 0);
+            //         lRecMRLinePage.SETFILTER("Material Req. No.", Rec."MR No.");
+            //         lRecMRLinePage.SETFILTER("Outstanding Quantity", '>%1', 0);
+            //         lRecMRLinePage.SETFILTER(Status, '%1|%2', lRecMRLinePage.Status::Released, lRecMRLinePage.Status::"Partial Receive / Processed On PR");
+            //         lRecMRLinePage.SETRANGE(Cancel, FALSE);
+            //         lRecMRLinePage.SETRANGE("Location Code", Rec."Location Code");
+            //         //lRecMRLine.SetRange("Material Req. No.", Rec."MR No.");
+            //         // lRecMRLinePage.SETFILTER("Shortcut Dimension 2 Code", Rec."Shortcut Dimension 2 Code");
+            //         IF lRecMRLinePage.FIND('-') THEN BEGIN
+            //             CLEAR(lPageSelectMR);
+            //             lPageSelectMR.SetTableView(lRecMRLinePage);
+            //             lPageSelectMR.LookupMode(true);
+            //             CASE lPageSelectMR.RUNMODAL() OF
+            //                 ACTION::LookupOK:
+            //                     BEGIN
+            //                         CurrPage.UPDATE();
+            //                         lRecMRLine.RESET;
+            //                         lPageSelectMR.SetSelectionFilter(lRecMRLine);
+            //                         IF lRecMRLine.FIND('-') THEN BEGIN
+            //                             REPEAT
+            //                                 gCUPRFunct.createPRLine_MR(lRecMRLine, Rec."Purchase Req. No.");
+            //                             UNTIL lRecMRLine.NEXT = 0;
+            //                         END;
+            //                     END;
+            //             end;
+            //         END
+            //         ELSE BEGIN
+            //             ERROR('No Material Request Line to be get');
+            //         END;
+            //         CurrPage.UPDATE;
+            //     end;
+            // }
+
+            // action("Get Material Req.")
+            // {
+            //     Caption = 'Get Material Request';
+            //     ApplicationArea = All;
+            //     Promoted = true;
+            //     PromotedCategory = Process;
+            //     PromotedIsBig = true;
+            //     PromotedOnly = true;
+            //     Image = GetSourceDoc;
+            //     ToolTip = 'Ambil baris dari Material Request. Kosongkan MR No. di header untuk mengambil dari beberapa MR sekaligus.';
+
+            //     trigger OnAction()
+            //     var
+            //         lRecMRLinePage: Record "Material Req. Line";
+            //         lRecMRLine: Record "Material Req. Line";
+            //         lPageSelectMR: Page "Select MR Line";
+            //         lIntCount: Integer;
+            //     begin
+            //         Rec.TestField(Status, Rec.Status::Open);
+            //         Rec.TestField("Location Code");
+
+            //         lRecMRLinePage.RESET;
+            //         lRecMRLinePage.SETFILTER(Quantity, '>%1', 0);
+            //         lRecMRLinePage.SETFILTER("Outstanding Quantity", '>%1', 0);
+            //         lRecMRLinePage.SETFILTER(Status, '%1|%2',
+            //                                  lRecMRLinePage.Status::Released,
+            //                                  lRecMRLinePage.Status::"Partial Receive / Processed On PR");
+            //         lRecMRLinePage.SETRANGE(Cancel, FALSE);
+            //         lRecMRLinePage.SETRANGE("Location Code", Rec."Location Code");
+
+            //         IF Rec."MR No." <> '' THEN
+            //             lRecMRLinePage.SETRANGE("Material Req. No.", Rec."MR No.");
+
+            //         IF NOT lRecMRLinePage.FINDFIRST() THEN BEGIN
+            //             IF Rec."MR No." <> '' THEN
+            //                 ERROR('Tidak ada baris Material Request %1 yang masih tersisa di lokasi %2.',
+            //                       Rec."MR No.", Rec."Location Code")
+            //             ELSE
+            //                 ERROR('Tidak ada baris Material Request yang masih tersisa di lokasi %1.',
+            //                       Rec."Location Code");
+            //         END;
+
+            //         CLEAR(lPageSelectMR);
+            //         lPageSelectMR.SetTableView(lRecMRLinePage);
+            //         lPageSelectMR.LookupMode(true);
+
+            //         IF lPageSelectMR.RUNMODAL() = ACTION::LookupOK THEN BEGIN
+            //             CurrPage.UPDATE();
+            //             lRecMRLine.RESET;
+            //             lPageSelectMR.SetSelectionFilter(lRecMRLine);
+            //             IF lRecMRLine.FINDSET() THEN
+            //                 REPEAT
+            //                     gCUPRFunct.createPRLine_MR(lRecMRLine, Rec."Purchase Req. No.");
+            //                     lIntCount += 1;
+            //                 UNTIL lRecMRLine.NEXT = 0;
+
+            //             MESSAGE('%1 baris berhasil diambil dari Material Request.', lIntCount);
+            //         END;
+
+            //         CurrPage.UPDATE;
+            //     end;
+            // }
+
             action("Get Material Req.")
             {
-                Caption = 'Get Material Request';
+                Caption = 'Get MR Line';
                 ApplicationArea = All;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
                 Image = GetSourceDoc;
+                ToolTip = 'Ambil baris dari Material Request. Semua MR yang masih tersisa di lokasi ini akan muncul — boleh pilih baris dari MR yang berbeda-beda sekaligus.';
 
                 trigger OnAction()
                 var
                     lRecMRLinePage: Record "Material Req. Line";
                     lRecMRLine: Record "Material Req. Line";
                     lPageSelectMR: Page "Select MR Line";
+                    lIntCount: Integer;
                 begin
                     Rec.TestField(Status, Rec.Status::Open);
                     Rec.TestField("Location Code");
-                    // Rec.TestField("Shortcut Dimension 2 Code");
+
+
                     lRecMRLinePage.RESET;
                     lRecMRLinePage.SETFILTER(Quantity, '>%1', 0);
-                    lRecMRLinePage.SETFILTER("Material Req. No.", Rec."MR No.");
                     lRecMRLinePage.SETFILTER("Outstanding Quantity", '>%1', 0);
-                    lRecMRLinePage.SETFILTER(Status, '%1|%2', lRecMRLinePage.Status::Released, lRecMRLinePage.Status::"Partial Receive / Processed On PR");
+                    lRecMRLinePage.SETFILTER(Status, '%1|%2',
+                                             lRecMRLinePage.Status::Released,
+                                             lRecMRLinePage.Status::"Partial Receive / Processed On PR");
                     lRecMRLinePage.SETRANGE(Cancel, FALSE);
                     lRecMRLinePage.SETRANGE("Location Code", Rec."Location Code");
-                    //lRecMRLine.SetRange("Material Req. No.", Rec."MR No.");
-                    // lRecMRLinePage.SETFILTER("Shortcut Dimension 2 Code", Rec."Shortcut Dimension 2 Code");
-                    IF lRecMRLinePage.FIND('-') THEN BEGIN
-                        CLEAR(lPageSelectMR);
-                        lPageSelectMR.SetTableView(lRecMRLinePage);
-                        lPageSelectMR.LookupMode(true);
-                        CASE lPageSelectMR.RUNMODAL() OF
-                            ACTION::LookupOK:
-                                BEGIN
-                                    CurrPage.UPDATE();
-                                    lRecMRLine.RESET;
-                                    lPageSelectMR.SetSelectionFilter(lRecMRLine);
-                                    IF lRecMRLine.FIND('-') THEN BEGIN
-                                        REPEAT
-                                            gCUPRFunct.createPRLine_MR(lRecMRLine, Rec."Purchase Req. No.");
-                                        UNTIL lRecMRLine.NEXT = 0;
-                                    END;
-                                END;
-                        end;
-                    END
-                    ELSE BEGIN
-                        ERROR('No Material Request Line to be get');
+
+
+                    IF NOT lRecMRLinePage.FINDFIRST() THEN
+                        ERROR('Tidak ada baris Material Request yang masih tersisa di lokasi %1.',
+                              Rec."Location Code");
+
+                    CLEAR(lPageSelectMR);
+                    lPageSelectMR.SetTableView(lRecMRLinePage);
+                    lPageSelectMR.LookupMode(true);
+
+                    IF lPageSelectMR.RUNMODAL() = ACTION::LookupOK THEN BEGIN
+                        CurrPage.UPDATE();
+                        lRecMRLine.RESET;
+                        lPageSelectMR.SetSelectionFilter(lRecMRLine);
+                        IF lRecMRLine.FINDSET() THEN
+                            REPEAT
+                                gCUPRFunct.createPRLine_MR(lRecMRLine, Rec."Purchase Req. No.");
+                                lIntCount += 1;
+                            UNTIL lRecMRLine.NEXT = 0;
+
+                        gCUPRFunct.UpdateMRNoFromLines(Rec."Purchase Req. No.");
+                        MESSAGE('%1 baris berhasil diambil dari Material Request.', lIntCount);
                     END;
+
                     CurrPage.UPDATE;
                 end;
             }
@@ -517,11 +647,33 @@ page 50105 "PR Material Card"
             //     end;
             // }
 
+            //AFTER
+            // action("Create PO1")
+            // {
+            //     ApplicationArea = All;
+            //     Caption = 'Create PO';
+            //     Visible = mandatory;
+            //     Promoted = true;
+            //     PromotedCategory = Process;
+            //     PromotedIsBig = true;
+            //     Image = CreateDocument;
+
+            //     trigger OnAction()
+            //     var
+            //         lCURFQFunction: Codeunit "PR Material Function";
+            //     begin
+            //         CurrPage.UPDATE();
+            //         IF NOT (Rec.Status IN [Rec.Status::Released, Rec.Status::Processed]) THEN ERROR('Status must be released or process to create purchase order');
+            //         lCURFQFunction.createPOHeader_PRMAT(Rec);
+            //         CurrPage.UPDATE();
+            //     end;
+            // }
             action("Create PO1")
             {
                 ApplicationArea = All;
                 Caption = 'Create PO';
                 Visible = mandatory;
+                Enabled = gBolCanProcess;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -532,15 +684,36 @@ page 50105 "PR Material Card"
                     lCURFQFunction: Codeunit "PR Material Function";
                 begin
                     CurrPage.UPDATE();
-                    IF NOT (Rec.Status IN [Rec.Status::Released, Rec.Status::Processed]) THEN ERROR('Status must be released or process to create purchase order');
                     lCURFQFunction.createPOHeader_PRMAT(Rec);
                     CurrPage.UPDATE();
                 end;
             }
+            //AFTER
+            // action("Create RFQ")
+            // {
+            //     Caption = 'Create RFQ';
+            //     ApplicationArea = All;
+            //     Promoted = true;
+            //     PromotedCategory = Process;
+            //     PromotedIsBig = true;
+            //     PromotedOnly = true;
+            //     Image = CreateDocument;
+
+            //     trigger OnAction()
+            //     var
+            //         lCURFQFunct: Codeunit "PR Material Function";
+            //     begin
+            //         IF NOT (Rec.Status IN [Rec.Status::Released, Rec.Status::Processed]) THEN ERROR('Status must be released or process to create RFQ');
+            //         CurrPage.UPDATE();
+            //         lCURFQFunct.createRFQHeader_PR(Rec);
+            //         CurrPage.UPDATE();
+            //     end;
+            // }
             action("Create RFQ")
             {
                 Caption = 'Create RFQ';
                 ApplicationArea = All;
+                Enabled = gBolCanProcess;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -551,7 +724,6 @@ page 50105 "PR Material Card"
                 var
                     lCURFQFunct: Codeunit "PR Material Function";
                 begin
-                    IF NOT (Rec.Status IN [Rec.Status::Released, Rec.Status::Processed]) THEN ERROR('Status must be released or process to create RFQ');
                     CurrPage.UPDATE();
                     lCURFQFunct.createRFQHeader_PR(Rec);
                     CurrPage.UPDATE();
@@ -566,18 +738,52 @@ page 50105 "PR Material Card"
             {
                 Caption = 'P&urchase Request';
                 Image = Trace;
+                // action("Material Request")
+                // {
+                //     ApplicationArea = all;
+                //     Caption = 'Material Request Document';
+                //     Image = Document;
+                //     trigger OnAction()
+                //     VAR
+                //         mr: Record "Material Req. Line";
+
+                //     begin
+                //         mr.SetRange("Material Req. No.", Rec."MR No.");
+                //         page.run(PAGE::"Material Request Lines", mr);
+                //     end;
+                // }
+
                 action("Material Request")
                 {
                     ApplicationArea = all;
                     Caption = 'Material Request Document';
                     Image = Document;
-                    trigger OnAction()
-                    VAR
-                        mr: Record "Material Req. Line";
 
+                    trigger OnAction()
+                    var
+                        lRecPRLine: Record "PR Material Line";
+                        lRecMRLine: Record "Material Req. Line";
+                        MRFilter: Text;
                     begin
-                        mr.SetRange("Material Req. No.", Rec."MR No.");
-                        page.run(PAGE::"Material Request Lines", mr);
+
+                        lRecPRLine.RESET;
+                        lRecPRLine.SETRANGE("Purchase Req. No.", Rec."Purchase Req. No.");
+                        lRecPRLine.SETFILTER("Material Req. No.", '<>%1', '');
+                        IF lRecPRLine.FINDSET() THEN
+                            REPEAT
+                                IF STRPOS(MRFilter, lRecPRLine."Material Req. No.") = 0 THEN BEGIN
+                                    IF MRFilter <> '' THEN
+                                        MRFilter += '|';
+                                    MRFilter += lRecPRLine."Material Req. No.";
+                                END;
+                            UNTIL lRecPRLine.NEXT = 0;
+
+                        IF MRFilter = '' THEN
+                            ERROR('PR %1 tidak punya baris yang berasal dari Material Request.',
+                                  Rec."Purchase Req. No.");
+
+                        lRecMRLine.SETFILTER("Material Req. No.", MRFilter);
+                        PAGE.RUN(PAGE::"Material Request Lines", lRecMRLine);
                     end;
                 }
                 action("RFQ DOC")
@@ -639,6 +845,19 @@ page 50105 "PR Material Card"
     end;
 
     trigger OnAfterGetRecord()
+    // begin
+    //     //AFTER
+    //     // IF Rec.Status = Rec.Status::Open THEN BEGIN
+    //     //     gBolEditable := TRUE;
+    //     // END
+    //     // ELSE BEGIN
+    //     //     gBolEditable := FALSE;
+    //     // END;
+    //     // gStyleItemNo := gCUPRFunct.changeColorStyleUrgent(Rec);
+    //     gBolEditable := (Rec.Status = Rec.Status::Open);
+    //     gStyleItemNo := gCUPRFunct.changeColorStyleUrgent(Rec);
+    //     gBolCanProcess := gCUPRFunct.CanProcessPR(Rec);
+    // end;
     begin
         IF Rec.Status = Rec.Status::Open THEN BEGIN
             gBolEditable := TRUE;
@@ -647,6 +866,8 @@ page 50105 "PR Material Card"
             gBolEditable := FALSE;
         END;
         gStyleItemNo := gCUPRFunct.changeColorStyleUrgent(Rec);
+        gBolCanProcess := gCUPRFunct.CanProcessPR(Rec);
+        gTxtMRSource := gCUPRFunct.GetMRSourceText(Rec."Purchase Req. No.");
     end;
     // trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     // begin
@@ -700,5 +921,7 @@ page 50105 "PR Material Card"
         OpenApprovalEntriesExistForCurrUser: Boolean;
 
         VISIBLE: Boolean;
+        gBolCanProcess: Boolean;
+        gTxtMRSource: Text;
 
 }

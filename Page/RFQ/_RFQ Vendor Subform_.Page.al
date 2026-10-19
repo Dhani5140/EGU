@@ -618,7 +618,7 @@ page 50166 "RFQ Vendor Subform"
             // Sebelumnya hanya "Send To Vendor". Diperlebar supaya user bisa
             // langsung Release -> isi harga -> Create PO tanpa wajib Send To Vendor.
             IF NOT (lRecRFQHeader.Status IN [lRecRFQHeader.Status::Open,
-                                             lRecRFQHeader.Status::Released,
+                                             //lRecRFQHeader.Status::Released,
                                              lRecRFQHeader.Status::"Send To Vendor"]) THEN
                 ERROR('Status must be Open, Released, or Send To Vendor to edit vendor line. Current status: %1', lRecRFQHeader.Status);
     end;

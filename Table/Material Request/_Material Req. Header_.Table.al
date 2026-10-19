@@ -339,12 +339,12 @@ table 50101 "Material Req. Header"
     trigger OnInsert()
     begin
         IF "Material Req. No." = '' THEN BEGIN
-            grecMSISetup.GET;
+            grecMSISetup.GET();
             grecMSISetup.TestField("Material Req. Nos.");
-            //NoSeriesMgt.InitSeries(grecMSISetup."Material Req. Nos.", xRec."No. Series", 0D, "Material Req. No.", "No. Series");
-            NoSeries.AreRelated(grecMSISetup."Material Req. Nos.", xRec."No. Series");
-
+            "Material Req. No." := NoSeries.GetNextNo(grecMSISetup."Material Req. Nos.", WORKDATE());
+            "No. Series" := grecMSISetup."Material Req. Nos.";
         END;
+
         "Document Date" := WORKDATE;
         "User ID" := USERID;
         "Created By" := USERID;

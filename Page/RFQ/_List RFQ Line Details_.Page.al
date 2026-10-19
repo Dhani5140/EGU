@@ -5,6 +5,10 @@ page 50129 "List RFQ Line Details"
     SourceTable = "RFQ Line Details";
     UsageCategory = Lists;
     Editable = FALSE;
+    ModifyAllowed = true;
+    DeleteAllowed = TRUE;
+    InsertAllowed = TRUE;
+    Permissions = TableData "RFQ Line Details" = RMID;
 
     layout
     {

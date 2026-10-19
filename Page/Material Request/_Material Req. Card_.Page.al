@@ -18,7 +18,7 @@ page 50102 "Material Req. Card"
                 field("Material Req. No."; Rec."Material Req. No.")
                 {
                     ApplicationArea = ALL;
-                    Editable = true;
+                    Editable = edit;
                     Caption = 'No';
 
                     trigger OnValidate()
@@ -527,20 +527,19 @@ page 50102 "Material Req. Card"
     }
     trigger OnOpenPage()
     begin
+        // IF MIISetup.GET() THEN
+        //     TOActive := MIISetup."Enable TO from RO"
+        // ELSE
+        //     Edit := TRUE;
+        Edit := TRUE;
+        TOActive := FALSE;
         IF MIISetup.GET() THEN
-            TOActive := MIISetup."Enable TO from RO"
-        ELSE
-            Edit := TRUE;
+            TOActive := MIISetup."Enable TO from RO";
     end;
 
     trigger OnAfterGetRecord()
     begin
-        IF Rec.Status = Rec.Status::Open THEN BEGIN
-            Edit := TRUE;
-        END
-        ELSE BEGIN
-            Edit := FALSE;
-        END;
+        Edit := (Rec.Status = Rec.Status::Open);
     end;
     // trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     // begin

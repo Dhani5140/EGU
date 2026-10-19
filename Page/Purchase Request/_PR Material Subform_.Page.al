@@ -2,6 +2,7 @@ page 50106 "PR Material Subform"
 {
     PageType = ListPart;
     SourceTable = "PR Material Line";
+    SourceTableView = sorting("Purchase Req. No.", "Line No.");
     AutoSplitKey = true;
     DelayedInsert = true;
     RefreshOnActivate = TRUE;
@@ -21,6 +22,7 @@ page 50106 "PR Material Subform"
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    ToolTip = 'Material Request asal baris ini. Satu PR bisa berisi baris dari beberapa MR.';
                 }
                 field(Type; Rec.Type)
                 {
@@ -43,7 +45,7 @@ page 50106 "PR Material Subform"
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = all;
-                    Editable = false;
+                    Editable = gBolQtyEditable;
                 }
 
                 field("Document Date"; Rec."Document Date")
@@ -127,6 +129,39 @@ page 50106 "PR Material Subform"
                     begin
                         CurrPage.UPDATE();
                     end;
+                }
+                field("Qty to PO"; Rec."Qty to PO")
+                {
+                    ApplicationArea = All;
+                    DecimalPlaces = 0 : 5;
+                    Editable = gBolQtyEditable;
+                    ShowMandatory = true;
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.UPDATE();
+                    end;
+                }
+                field("Qty to RFQ"; Rec."Qty to RFQ")
+                {
+                    ApplicationArea = All;
+                    DecimalPlaces = 0 : 5;
+                    Editable = gBolQtyEditable;
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.UPDATE();
+                    end;
+                }
+                field("Qty Transferred to PO"; Rec."Qty Transferred to PO")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                }
+                field("Total Qty On PO"; Rec."Total Qty On PO")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure")
                 {
@@ -275,6 +310,42 @@ page 50106 "PR Material Subform"
             //         PAGE.RUN(50150, MR);
             //     end;
             // }
+            action(FillQtyToPO)
+            {
+                ApplicationArea = All;
+                Caption = 'Isi Qty to PO = Sisa';
+                Image = SuggestLines;
+
+                trigger OnAction()
+                var
+                    lRecPRHeader: Record "PR Material Header";
+                    lCUPRFunct: Codeunit "PR Material Function";
+                begin
+                    IF lRecPRHeader.GET(Rec."Purchase Req. No.") THEN
+                        lCUPRFunct.FillQtyToPO(lRecPRHeader);
+                    CurrPage.UPDATE(false);
+                end;
+            }
+            action(ClearQtyToPO)
+            {
+                ApplicationArea = All;
+                Caption = 'Kosongkan Qty to PO';
+                Image = ClearFilter;
+
+                trigger OnAction()
+                var
+                    lRecPRLine: Record "PR Material Line";
+                begin
+                    lRecPRLine.SETRANGE("Purchase Req. No.", Rec."Purchase Req. No.");
+                    IF lRecPRLine.FINDSET(TRUE) THEN
+                        REPEAT
+                            lRecPRLine."Qty to PO" := 0;
+                            lRecPRLine."Qty to RFQ" := 0;
+                            lRecPRLine.MODIFY(TRUE);
+                        UNTIL lRecPRLine.NEXT = 0;
+                    CurrPage.UPDATE(false);
+                end;
+            }
         }
     }
     trigger OnOpenPage()
@@ -283,14 +354,26 @@ page 50106 "PR Material Subform"
     end;
 
     trigger OnAfterGetRecord()
+    //AFTER
+    // begin
+    //     Rec.CalcFields(Status);
+    //     IF Rec.Status = Rec.Status::Open THEN BEGIN
+    //         gBolEditable := TRUE;
+    //     END
+    //     ELSE BEGIN
+    //         gBolEditable := FALSE;
+    //     END;
+    // end;
+
     begin
         Rec.CalcFields(Status);
-        IF Rec.Status = Rec.Status::Open THEN BEGIN
-            gBolEditable := TRUE;
-        END
-        ELSE BEGIN
-            gBolEditable := FALSE;
-        END;
+
+        gBolEditable := (Rec.Status = Rec.Status::Open);
+
+        // kolom qty boleh diisi saat Open, Released, DAN Processed (partial)
+        gBolQtyEditable := Rec.Status IN [Rec.Status::Open,
+                                          Rec.Status::Released,
+                                          Rec.Status::Processed];
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -306,4 +389,6 @@ page 50106 "PR Material Subform"
 
     var
         gBolEditable: Boolean;
+
+        gBolQtyEditable: Boolean;
 }

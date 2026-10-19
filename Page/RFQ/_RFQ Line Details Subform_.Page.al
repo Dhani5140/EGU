@@ -437,7 +437,7 @@ page 50136 "RFQ Line Details Subform"
         // gBolEditable jadi FALSE saat Open, sehingga tidak pernah editable.
         gBolEditable := (Rec."Status RFQ" = Rec."Status RFQ"::Open);
         gsendtovendor := Rec."Status RFQ" IN [Rec."Status RFQ"::Open,
-                                              Rec."Status RFQ"::Released,
+                                              //Rec."Status RFQ"::Released,
                                               Rec."Status RFQ"::"Send To Vendor"];
     end;
 
@@ -448,7 +448,7 @@ page 50136 "RFQ Line Details Subform"
         // gBolEditable jadi FALSE saat Open, sehingga tidak pernah editable.
         gBolEditable := (Rec."Status RFQ" = Rec."Status RFQ"::Open);
         gsendtovendor := Rec."Status RFQ" IN [Rec."Status RFQ"::Open,
-                                              Rec."Status RFQ"::Released,
+                                              //Rec."Status RFQ"::Released,
                                               Rec."Status RFQ"::"Send To Vendor"];
     END;
 

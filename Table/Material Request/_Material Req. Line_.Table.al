@@ -76,6 +76,7 @@ table 50102 "Material Req. Line"
                 "Line Amount" := Quantity * "Direct Unit Cost";
                 "Outstanding Quantity" := Quantity;
                 "Outstanding Qty Invt. Shpt" := Quantity;
+                "Qty to PR" := Quantity;
             end;
         }
         field(6; "Unit of Measure"; Code[10])
@@ -361,6 +362,20 @@ table 50102 "Material Req. Line"
             Caption = 'Total Shipped Quantity';
             FieldClass = FlowField;
             CalcFormula = sum("Transfer Shipment Line".Quantity WHERE("Transfer Order No." = field("Transfer Order No."), "Item No." = field("Item No.")));
+        }
+        field(55; "Qty to PR"; Decimal)
+        {
+            Caption = 'Qty to PR';
+            DataClassification = ToBeClassified;
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+
+            trigger OnValidate()
+            begin
+
+                IF "Qty to PR" > "Outstanding Quantity" THEN
+                    ERROR('Qty to PR tidak boleh lebih dari sisa %1.', "Outstanding Quantity");
+            end;
         }
     }
     keys

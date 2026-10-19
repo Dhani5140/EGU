@@ -125,6 +125,9 @@ table 50108 "RFQ Line Details"
         field(9; "Quantity"; Decimal)
         {
             DataClassification = ToBeClassified;
+            DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '';
 
             trigger OnValidate()
             begin

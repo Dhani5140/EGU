@@ -11,17 +11,29 @@ codeunit 50104 "PR Material Function"
 
     END;
     //Check
+    //AFTER
+    // procedure checkPRLinehasRFQ(PRNo: Code[20]; msgErr: Text)
+    // var
+    //     lRecPRLine: Record "PR Material Line";
+    // begin
+    //     lRecPRLine.RESET;
+    //     lRecPRLine.CalcFields("Total Qty on RFQ");
+    //     lRecPRLine.SETRANGE("Purchase Req. No.", PRNo);
+    //     lRecPRLine.SETFILTER("Total Qty on RFQ", '>%1', 0);
+    //     IF lRecPRLine.FINDFIRST THEN BEGIN
+    //         ERROR('Purchase Request Line %1 already has RFQ, cannot %2', lRecPRLine."Line No.", msgErr)
+    //     END;
+    // end;
+
     procedure checkPRLinehasRFQ(PRNo: Code[20]; msgErr: Text)
     var
         lRecPRLine: Record "PR Material Line";
     begin
         lRecPRLine.RESET;
-        lRecPRLine.CalcFields("Total Qty on RFQ");
         lRecPRLine.SETRANGE("Purchase Req. No.", PRNo);
-        lRecPRLine.SETFILTER("Total Qty on RFQ", '>%1', 0);
-        IF lRecPRLine.FINDFIRST THEN BEGIN
-            ERROR('Purchase Request Line %1 already has RFQ, cannot %2', lRecPRLine."Line No.", msgErr)
-        END;
+        lRecPRLine.SETFILTER("Total Qty On RFQ", '>%1', 0);
+        IF lRecPRLine.FINDFIRST THEN
+            ERROR('Purchase Request Line %1 already has RFQ, cannot %2', lRecPRLine."Line No.", msgErr);
     end;
 
     procedure checkPRLinehasOutstanding(PRNo: Code[20]): Boolean
@@ -80,6 +92,62 @@ codeunit 50104 "PR Material Function"
         closedStatus_PRMaterial(ParPRLine."Purchase Req. No.");
     end;
 
+    // AFTER
+    // procedure closedStatus_PRMaterial(PRNo: Code[20])
+    // var
+    //     lRecPRHeader: Record "PR Material Header";
+    //     lRecPRLine: Record "PR Material Line";
+    //     isOutstanding: Boolean;
+    //     hasProcess: Boolean;
+    //     hasLine: Boolean;
+    //     statusInt: Integer;
+    // begin
+    //     statusInt := 0;
+    //     isOutstanding := FALSE;
+    //     hasLine := FALSE;
+    //     hasProcess := FALSE;
+    //     lRecPRLine.RESET;
+    //     lRecPRLine.SETRANGE(lRecPRLine."Purchase Req. No.", PRNo);
+    //     IF lRecPRLine.FIND('-') THEN BEGIN
+    //         REPEAT
+    //             hasLine := TRUE;
+    //             IF lRecPRLine.Quantity > lRecPRLine."Outstanding Quantity" THEN hasProcess := TRUE;
+    //             IF lRecPRLine."Outstanding Quantity" > 0 THEN isOutstanding := TRUE;
+    //         UNTIL (lRecPRLine.NEXT = 0);
+    //     END;
+    //     IF hasLine THEN BEGIN
+    //         IF hasProcess THEN BEGIN
+    //             IF isOutstanding THEN BEGIN
+    //                 statusInt := 2;
+    //             END
+    //             ELSE BEGIN
+    //                 statusInt := 3;
+    //             END;
+    //         END
+    //         ELSE BEGIN
+    //             statusInt := 1;
+    //         END;
+    //     END
+    //     ELSE BEGIN
+    //         statusInt := 3;
+    //     END;
+    //     IF statusInt <> 0 THEN BEGIN
+    //         lRecPRHeader.RESET;
+    //         lRecPRHeader.SETRANGE(lRecPRHeader."Purchase Req. No.", PRNo);
+    //         IF lRecPRHeader.FINDFIRST THEN BEGIN
+    //             Case StatusInt OF
+    //                 1:
+    //                     lRecPRHeader.VALIDATE(Status, lRecPRHeader.Status::Released);
+    //                 2:
+    //                     lRecPRHeader.VALIDATE(Status, lRecPRHeader.Status::Processed);
+    //                 3:
+    //                     lRecPRHeader.VALIDATE(Status, lRecPRHeader.Status::Closed);
+    //             END;
+    //             lRecPRHeader.MODIFY;
+    //         END;
+    //     END;
+    // end;
+
     procedure closedStatus_PRMaterial(PRNo: Code[20])
     var
         lRecPRHeader: Record "PR Material Header";
@@ -87,53 +155,48 @@ codeunit 50104 "PR Material Function"
         isOutstanding: Boolean;
         hasProcess: Boolean;
         hasLine: Boolean;
-        statusInt: Integer;
+        NewStatus: Enum "PR Module Status";
     begin
-        statusInt := 0;
-        isOutstanding := FALSE;
-        hasLine := FALSE;
-        hasProcess := FALSE;
+        IF NOT lRecPRHeader.GET(PRNo) THEN
+            EXIT;
+
+        // jangan sentuh dokumen yang sedang di alur approval / sudah dibatalkan
+        IF NOT (lRecPRHeader.Status IN [lRecPRHeader.Status::Released,
+                                        lRecPRHeader.Status::Processed,
+                                        lRecPRHeader.Status::Closed]) THEN
+            EXIT;
+
         lRecPRLine.RESET;
-        lRecPRLine.SETRANGE(lRecPRLine."Purchase Req. No.", PRNo);
-        IF lRecPRLine.FIND('-') THEN BEGIN
+        lRecPRLine.SETRANGE("Purchase Req. No.", PRNo);
+        IF lRecPRLine.FINDSET(TRUE) THEN
             REPEAT
                 hasLine := TRUE;
-                IF lRecPRLine.Quantity > lRecPRLine."Outstanding Quantity" THEN hasProcess := TRUE;
-                IF lRecPRLine."Outstanding Quantity" > 0 THEN isOutstanding := TRUE;
-            UNTIL (lRecPRLine.NEXT = 0);
-        END;
-        IF hasLine THEN BEGIN
-            IF hasProcess THEN BEGIN
-                IF isOutstanding THEN BEGIN
-                    statusInt := 2;
-                END
-                ELSE BEGIN
-                    statusInt := 3;
-                END;
-            END
-            ELSE BEGIN
-                statusInt := 1;
-            END;
-        END
-        ELSE BEGIN
-            statusInt := 3;
-        END;
-        IF statusInt <> 0 THEN BEGIN
-            lRecPRHeader.RESET;
-            lRecPRHeader.SETRANGE(lRecPRHeader."Purchase Req. No.", PRNo);
-            IF lRecPRHeader.FINDFIRST THEN BEGIN
-                Case StatusInt OF
-                    1:
-                        lRecPRHeader.VALIDATE(Status, lRecPRHeader.Status::Released);
-                    2:
-                        lRecPRHeader.VALIDATE(Status, lRecPRHeader.Status::Processed);
-                    3:
-                        lRecPRHeader.VALIDATE(Status, lRecPRHeader.Status::Closed);
-                END;
-                lRecPRHeader.MODIFY;
-            END;
+                lRecPRLine.RecalcOutstanding();
+                lRecPRLine.MODIFY(FALSE);
+
+                IF lRecPRLine.Quantity > lRecPRLine."Outstanding Quantity" THEN
+                    hasProcess := TRUE;
+                IF lRecPRLine."Outstanding Quantity" > 0 THEN
+                    isOutstanding := TRUE;
+            UNTIL lRecPRLine.NEXT = 0;
+
+        IF NOT hasLine THEN
+            EXIT;                       // PR kosong jangan otomatis Closed
+
+        IF NOT hasProcess THEN
+            NewStatus := lRecPRHeader.Status::Released
+        ELSE
+            IF isOutstanding THEN
+                NewStatus := lRecPRHeader.Status::Processed     // <-- PARTIAL
+            ELSE
+                NewStatus := lRecPRHeader.Status::Closed;
+
+        IF lRecPRHeader.Status <> NewStatus THEN BEGIN
+            lRecPRHeader.Status := NewStatus;   // assign langsung, bukan VALIDATE
+            lRecPRHeader.MODIFY(TRUE);
         END;
     end;
+
     //UpdateOutsanding
     //Create PO
     procedure createPOHeader_PR(var ParPRHeader: Record "PR Material Header")
@@ -498,11 +561,70 @@ codeunit 50104 "PR Material Function"
                     createPRLine_MR(lRecMRLine, lRecPRHeader."Purchase Req. No.");
                 UNTIL lRecMRLine.NEXT = 0;
             END;
+
+            UpdateMRNoFromLines(lRecPRHeader."Purchase Req. No.");   // <-- SISIPKAN INI
+
             COMMIT;
             Page.RUN(Page::"PR Material Card", lRecPRHeader);
         END;
     end;
+    //AFTER
+    // procedure CreatePRLine_MR(MRLine: Record "Material Req. Line"; DocNo: Code[20])
+    // var
+    //     lrecPRLine: Record "PR Material Line";
+    // begin
+    //     lrecPRLine.Init();
+    //     lrecPRLine."Purchase Req. No." := DocNo;
+    //     lrecPRLine."Line No." := getPRLastLineNo(DocNo);
+    //     lrecPRLine.INSERT(TRUE);
+    //     lrecPRLine.Validate(Type, MRLine.Type);
+    //     lrecPRLine.Validate("Item No.", MRLine."Item No.");
+    //     lrecPRLine.Validate(Quantity, MRLine."Outstanding Quantity");
+    //     lrecPRLine.Validate("Original Qty MR", MRLine.Quantity);
+    //     lrecPRLine.Validate("Direct Unit Cost", MRLine."Direct Unit Cost");
+    //     lrecPRLine.Validate("Location Code", MRLine."Location Code");
+    //     lrecPRLine.Validate("Unit of Measure", MRLine."Unit of Measure");
+    //     lrecPRLine.Validate("Part No.", MRLine."Part No.");
+    //     lrecPRLine.Validate("Material Req. No.", MRLine."Material Req. No.");
+    //     lrecPRLine.Validate("Material Req. Line No.", MRLine."Line No.");
+    //     lrecPRLine.VALIDATE("Location Code", MRLine."Location Code");
+    //     lrecPRLine.VALIDATE("Shortcut Dimension 1 Code", MRLine."Shortcut Dimension 1 Code");
+    //     lrecPRLine.VALIDATE("Shortcut Dimension 2 Code", MRLine."Shortcut Dimension 2 Code");
+    //     // lrecPRLine.VALIDATE("Shortcut Dimension 3 Code", MRLine."Shortcut Dimension 3 Code");
+    //     // lrecPRLine.VALIDATE("Shortcut Dimension 4 Code", MRLine."Shortcut Dimension 4 Code");
+    //     // lrecPRLine.VALIDATE("Shortcut Dimension 5 Code", MRLine."Shortcut Dimension 5 Code");
+    //     // lrecPRLine.VALIDATE("Shortcut Dimension 6 Code", MRLine."Shortcut Dimension 6 Code");
+    //     // lrecPRLine.VALIDATE("Shortcut Dimension 7 Code", MRLine."Shortcut Dimension 7 Code");
+    //     // lrecPRLine.VALIDATE("Shortcut Dimension 8 Code", MRLine."Shortcut Dimension 8 Code");
+    //     lrecPRLine.MODIFY(TRUE);
 
+    // end;
+
+    //AFTER
+    // procedure CreatePRLine_MR(MRLine: Record "Material Req. Line"; DocNo: Code[20])
+    // var
+    //     lrecPRLine: Record "PR Material Line";
+    // begin
+    //     lrecPRLine.Init();
+    //     lrecPRLine."Purchase Req. No." := DocNo;
+    //     lrecPRLine."Line No." := getPRLastLineNo(DocNo);
+    //     lrecPRLine.INSERT(TRUE);
+    //     lrecPRLine.Validate(Type, MRLine.Type);
+    //     lrecPRLine.Validate("Item No.", MRLine."Item No.");
+    //     lrecPRLine.Validate(Quantity, MRLine."Outstanding Quantity");     
+    //     lrecPRLine.Validate("Original Qty MR", MRLine.Quantity);
+    //     lrecPRLine.Validate("Direct Unit Cost", MRLine."Direct Unit Cost");
+    //     lrecPRLine.Validate("Location Code", MRLine."Location Code");
+    //     lrecPRLine.Validate("Unit of Measure", MRLine."Unit of Measure");
+    //     lrecPRLine.Validate("Part No.", MRLine."Part No.");
+    //     lrecPRLine.Validate("Material Req. No.", MRLine."Material Req. No.");        
+    //     lrecPRLine.Validate("Material Req. Line No.", MRLine."Line No.");            
+    //     lrecPRLine.VALIDATE("Location Code", MRLine."Location Code");
+    //     lrecPRLine.VALIDATE("Shortcut Dimension 1 Code", MRLine."Shortcut Dimension 1 Code");
+    //     lrecPRLine.VALIDATE("Shortcut Dimension 2 Code", MRLine."Shortcut Dimension 2 Code");
+    //     lrecPRLine.MODIFY(TRUE);
+    // end;
+    //new
     procedure CreatePRLine_MR(MRLine: Record "Material Req. Line"; DocNo: Code[20])
     var
         lrecPRLine: Record "PR Material Line";
@@ -511,28 +633,97 @@ codeunit 50104 "PR Material Function"
         lrecPRLine."Purchase Req. No." := DocNo;
         lrecPRLine."Line No." := getPRLastLineNo(DocNo);
         lrecPRLine.INSERT(TRUE);
+
+
+        lrecPRLine."Material Req. No." := MRLine."Material Req. No.";
+        lrecPRLine."Material Req. Line No." := MRLine."Line No.";
+
         lrecPRLine.Validate(Type, MRLine.Type);
         lrecPRLine.Validate("Item No.", MRLine."Item No.");
-        lrecPRLine.Validate(Quantity, MRLine."Outstanding Quantity");
-        lrecPRLine.Validate("Original Qty MR", MRLine.Quantity);
-        lrecPRLine.Validate("Direct Unit Cost", MRLine."Direct Unit Cost");
         lrecPRLine.Validate("Location Code", MRLine."Location Code");
         lrecPRLine.Validate("Unit of Measure", MRLine."Unit of Measure");
+        // harga default sudah diisi dari master Item saat validate Item No.; MR hanya menimpa jika ada harga
+        IF MRLine."Direct Unit Cost" <> 0 THEN
+            lrecPRLine.Validate("Direct Unit Cost", MRLine."Direct Unit Cost");
+
+        IF MRLine."Qty to PR" > 0 THEN
+            lrecPRLine.Validate(Quantity, MRLine."Qty to PR")
+        ELSE
+            lrecPRLine.Validate(Quantity, MRLine."Outstanding Quantity");
+
+        lrecPRLine.Validate("Original Qty MR", MRLine.Quantity);
         lrecPRLine.Validate("Part No.", MRLine."Part No.");
-        lrecPRLine.Validate("Material Req. No.", MRLine."Material Req. No.");
-        lrecPRLine.Validate("Material Req. Line No.", MRLine."Line No.");
-        lrecPRLine.VALIDATE("Location Code", MRLine."Location Code");
         lrecPRLine.VALIDATE("Shortcut Dimension 1 Code", MRLine."Shortcut Dimension 1 Code");
         lrecPRLine.VALIDATE("Shortcut Dimension 2 Code", MRLine."Shortcut Dimension 2 Code");
-        // lrecPRLine.VALIDATE("Shortcut Dimension 3 Code", MRLine."Shortcut Dimension 3 Code");
-        // lrecPRLine.VALIDATE("Shortcut Dimension 4 Code", MRLine."Shortcut Dimension 4 Code");
-        // lrecPRLine.VALIDATE("Shortcut Dimension 5 Code", MRLine."Shortcut Dimension 5 Code");
-        // lrecPRLine.VALIDATE("Shortcut Dimension 6 Code", MRLine."Shortcut Dimension 6 Code");
-        // lrecPRLine.VALIDATE("Shortcut Dimension 7 Code", MRLine."Shortcut Dimension 7 Code");
-        // lrecPRLine.VALIDATE("Shortcut Dimension 8 Code", MRLine."Shortcut Dimension 8 Code");
         lrecPRLine.MODIFY(TRUE);
-
     end;
+    //New
+    procedure GetMRSourceText(PRNo: Code[20]): Text
+    var
+        lRecPRLine: Record "PR Material Line";
+        MRList: List of [Code[50]];
+        mr: Code[50];
+        Txt: Text;
+    begin
+        lRecPRLine.RESET;
+        lRecPRLine.SETRANGE("Purchase Req. No.", PRNo);
+        lRecPRLine.SETFILTER("Material Req. No.", '<>%1', '');
+        IF lRecPRLine.FINDSET() THEN
+            REPEAT
+                IF NOT MRList.Contains(lRecPRLine."Material Req. No.") THEN
+                    MRList.Add(lRecPRLine."Material Req. No.");
+            UNTIL lRecPRLine.NEXT = 0;
+
+        IF MRList.Count() = 0 THEN
+            EXIT('');
+
+        FOREACH mr IN MRList DO BEGIN
+            IF Txt <> '' THEN
+                Txt += ', ';
+            Txt += mr;
+        END;
+
+        IF MRList.Count() = 1 THEN
+            EXIT(Txt);
+
+        EXIT(STRSUBSTNO('%1 MR — %2', MRList.Count(), Txt));
+    end;
+    //new
+    procedure UpdateMRNoFromLines(PRNo: Code[20])
+    var
+        lRecPRHeader: Record "PR Material Header";
+        lRecPRLine: Record "PR Material Line";
+        FirstMR: Code[50];
+        Multiple: Boolean;
+    begin
+        IF NOT lRecPRHeader.GET(PRNo) THEN
+            EXIT;
+
+        lRecPRLine.RESET;
+        lRecPRLine.SETRANGE("Purchase Req. No.", PRNo);
+        lRecPRLine.SETFILTER("Material Req. No.", '<>%1', '');
+        IF lRecPRLine.FINDSET() THEN
+            REPEAT
+                IF FirstMR = '' THEN
+                    FirstMR := lRecPRLine."Material Req. No."
+                ELSE
+                    IF FirstMR <> lRecPRLine."Material Req. No." THEN
+                        Multiple := TRUE;
+            UNTIL lRecPRLine.NEXT = 0;
+
+        IF Multiple OR (FirstMR = '') THEN BEGIN
+            lRecPRHeader."MR No." := '';
+            lRecPRHeader."Material Req. No." := '';
+        END ELSE BEGIN
+            // PR Line."Material Req. No." itu Code[50];
+            // header "MR No." Code[20] dan "Material Req. No." Code[35]
+            lRecPRHeader."MR No." := COPYSTR(FirstMR, 1, 20);
+            lRecPRHeader."Material Req. No." := COPYSTR(FirstMR, 1, 35);
+        END;
+
+        lRecPRHeader.MODIFY(TRUE);
+    end;
+
 
     procedure changeColorStyleUrgent(var parPRHeader: Record "PR Material Header"): Text[50]
     begin
@@ -647,95 +838,313 @@ codeunit 50104 "PR Material Function"
     //     PurchLineView.SETRANGE(PurchLineView."Batch No. [PR]", BatchNo);
     //     IF PurchLineView.FIND('-') THEN Page.RUN(Page::"Purchase Lines", PurchLineView);
     // end;
+
+
+    //After UAT EGU
+    // procedure createPOHeader_PRMAT(var PRHeader: Record "PR Material Header")
+    // var
+    //     PRLine: Record "PR Material Line";
+    //     PurchHeader: Record "Purchase Header";
+    //     PurchLine: Record "Purchase Line";
+    //     LineNo: Integer;
+    //     CurrentVendor: Code[20];
+    //     POCount: Integer;
+    // begin
+    //     // 1. Validasi Dokumen Utama
+    //     PRHeader.TestField(Status, PRHeader.Status::Released);
+    //     // PRHeader.TestField("Item Category Code"); // Wajib diisi
+
+    //     PRLine.Reset();
+    //     PRLine.SetRange("Purchase Req. No.", PRHeader."Purchase Req. No.");
+    //     PRLine.SetFilter("Qty to PO", '>0'); // Hanya proses baris yang punya kuantitas untuk di-PO-kan
+
+    //     // 2. Wajib SetCurrentKey agar baris terurut berdasarkan Vendor
+    //     PRLine.SetCurrentKey("Purchase Req. No.", "Vendor No.");
+
+    //     if PRLine.FindSet() then begin
+    //         CurrentVendor := '';
+    //         POCount := 0;
+
+    //         repeat
+    //             // Pastikan Vendor No. pada baris sudah diisi
+    //             PRLine.TestField("Vendor No.");
+
+    //             // 3. LOGIKA GROUPING: Jika Vendor baris ini BEDA dengan Vendor baris sebelumnya, Bikin PO Baru
+    //             if CurrentVendor <> PRLine."Vendor No." then begin
+    //                 PurchHeader.Init();
+    //                 PurchHeader.Validate("Document Type", PurchHeader."Document Type"::Order);
+    //                 PurchHeader.Insert(true);
+
+    //                 PurchHeader.Validate("Buy-from Vendor No.", PRLine."Vendor No.");
+    //                 PurchHeader.Validate("Document Date", WorkDate());
+    //                 PurchHeader."Your Reference" := PRHeader."Purchase Req. No.";
+    //                 // Tautan balik ke PR, supaya PO bisa ditelusuri dari PR Card.
+    //                 PurchHeader."Purchase Req. No." := PRHeader."Purchase Req. No.";
+    //                 PurchHeader.Modify(true);
+
+    //                 // Update Tracker untuk baris selanjutnya
+    //                 CurrentVendor := PRLine."Vendor No.";
+    //                 LineNo := 10000;
+    //                 POCount += 1;
+    //             end;
+
+    //             // 4. Insert Baris (Lines) ke PO yang sedang aktif di-looping
+    //             PurchLine.Init();
+    //             PurchLine.Validate("Document Type", PurchHeader."Document Type");
+    //             PurchLine.Validate("Document No.", PurchHeader."No.");
+    //             PurchLine.Validate("Line No.", LineNo);
+    //             PurchLine.Insert(true);
+
+    //             // Mapping Tipe Barang
+    //             if PRLine.Type = PRLine.Type::Item then
+    //                 PurchLine.Validate(Type, PurchLine.Type::Item)
+    //             else if PRLine.Type = PRLine.Type::"G/L Account" then
+    //                 PurchLine.Validate(Type, PurchLine.Type::"G/L Account");
+
+    //             PurchLine.Validate("No.", PRLine."Item No.");
+    //             PurchLine.Validate("Location Code", PRLine."Location Code");
+    //             PurchLine.Validate(Quantity, PRLine."Qty to PO");
+    //             PurchLine.Validate("Direct Unit Cost", PRLine."Direct Unit Cost");
+    //             // Tautan balik ke PR (dipakai untuk tracking PO dari PR Card).
+    //             PurchLine."Purchase Req. No." := PRHeader."Purchase Req. No.";
+    //             PurchLine."Purchase Req. Line No." := PRLine."Line No.";
+    //             PurchLine."Original Qty PR" := PRLine."Qty to PO";
+    //             PurchLine.Modify(true);
+
+    //             // 5. Kurangi sisa Qty yang belum di-PO-kan di PR Line
+    //             PRLine."Total Qty On PO" += PRLine."Qty to PO";
+    //             PRLine."Outstanding Quantity" -= PRLine."Qty to PO";
+    //             PRLine."Qty to PO" := 0;
+    //             PRLine.Modify(true);
+
+    //             LineNo += 10000;
+    //         until PRLine.Next() = 0;
+
+    //         // Update status PR Header sesuai sisa Outstanding:
+    //         // masih ada sisa -> Processed, habis semua -> Closed.
+    //         closedStatus_PRMaterial(PRHeader."Purchase Req. No.");
+    //         IF PRHeader.GET(PRHeader."Purchase Req. No.") THEN;
+
+    //         Message('Berhasil membuat %1 dokumen Purchase Order. PO telah dikelompokkan berdasarkan Vendor.', POCount);
+    //     end else begin
+    //         Error('Tidak ada baris PR yang siap diproses menjadi PO. Pastikan "Qty to PO" lebih dari 0.');
+    //     end;
+    // end;
+
     procedure createPOHeader_PRMAT(var PRHeader: Record "PR Material Header")
     var
         PRLine: Record "PR Material Line";
         PurchHeader: Record "Purchase Header";
-        PurchLine: Record "Purchase Line";
-        LineNo: Integer;
+        lRecVendor: Record Vendor;
         CurrentVendor: Code[20];
+        CreatedPO: Text;
         POCount: Integer;
+        AnyQty: Boolean;
+        BatchNo: Integer;
     begin
-        // 1. Validasi Dokumen Utama
-        PRHeader.TestField(Status, PRHeader.Status::Released);
-        // PRHeader.TestField("Item Category Code"); // Wajib diisi
+        PRHeader.TestField("Purchase Req. No.");
 
-        PRLine.Reset();
-        PRLine.SetRange("Purchase Req. No.", PRHeader."Purchase Req. No.");
-        PRLine.SetFilter("Qty to PO", '>0'); // Hanya proses baris yang punya kuantitas untuk di-PO-kan
+        // GUARD: Processed = sudah partial, HARUS tetap boleh lanjut.
+        // Baris lama "PRHeader.TestField(Status, PRHeader.Status::Released);" dihapus.
+        IF NOT (PRHeader.Status IN [PRHeader.Status::Released, PRHeader.Status::Processed]) THEN
+            ERROR('Status %1 tidak bisa diproses. Status harus Released atau Processed.', Format(PRHeader.Status));
 
-        // 2. Wajib SetCurrentKey agar baris terurut berdasarkan Vendor
-        PRLine.SetCurrentKey("Purchase Req. No.", "Vendor No.");
+        BatchNo := PRHeader."Batch No. [PR]" + 1;
+        SyncVendorFromHeader(PRHeader);
 
-        if PRLine.FindSet() then begin
-            CurrentVendor := '';
-            POCount := 0;
+        // ============ PASS 1 : VALIDASI SAJA, jangan insert apa pun ============
+        PRLine.RESET;
+        PRLine.SETRANGE("Purchase Req. No.", PRHeader."Purchase Req. No.");
+        IF NOT PRLine.FINDSET() THEN
+            ERROR('Purchase Request %1 tidak punya baris.', PRHeader."Purchase Req. No.");
 
-            repeat
-                // Pastikan Vendor No. pada baris sudah diisi
-                PRLine.TestField("Vendor No.");
+        REPEAT
+            PRLine.RecalcOutstanding();
 
-                // 3. LOGIKA GROUPING: Jika Vendor baris ini BEDA dengan Vendor baris sebelumnya, Bikin PO Baru
-                if CurrentVendor <> PRLine."Vendor No." then begin
-                    PurchHeader.Init();
-                    PurchHeader.Validate("Document Type", PurchHeader."Document Type"::Order);
-                    PurchHeader.Insert(true);
+            IF PRLine."Qty to PO" > 0 THEN BEGIN
+                AnyQty := TRUE;
 
-                    PurchHeader.Validate("Buy-from Vendor No.", PRLine."Vendor No.");
-                    PurchHeader.Validate("Document Date", WorkDate());
-                    PurchHeader."Your Reference" := PRHeader."Purchase Req. No.";
-                    // Tautan balik ke PR, supaya PO bisa ditelusuri dari PR Card.
-                    PurchHeader."Purchase Req. No." := PRHeader."Purchase Req. No.";
-                    PurchHeader.Modify(true);
+                IF PRLine."Qty to PO" > PRLine."Outstanding Quantity" THEN
+                    ERROR('Baris %1: Qty to PO %2 melebihi sisa yang bisa diproses (%3).',
+                          PRLine."Line No.", PRLine."Qty to PO", PRLine."Outstanding Quantity");
 
-                    // Update Tracker untuk baris selanjutnya
-                    CurrentVendor := PRLine."Vendor No.";
-                    LineNo := 10000;
-                    POCount += 1;
-                end;
+                IF PRLine."Vendor No." = '' THEN
+                    ERROR('Baris %1: Vendor No. belum diisi.', PRLine."Line No.");
 
-                // 4. Insert Baris (Lines) ke PO yang sedang aktif di-looping
-                PurchLine.Init();
-                PurchLine.Validate("Document Type", PurchHeader."Document Type");
-                PurchLine.Validate("Document No.", PurchHeader."No.");
-                PurchLine.Validate("Line No.", LineNo);
-                PurchLine.Insert(true);
+                IF PRLine."Item No." = '' THEN
+                    ERROR('Baris %1: No. (item) belum diisi.', PRLine."Line No.");
 
-                // Mapping Tipe Barang
-                if PRLine.Type = PRLine.Type::Item then
-                    PurchLine.Validate(Type, PurchLine.Type::Item)
-                else if PRLine.Type = PRLine.Type::"G/L Account" then
-                    PurchLine.Validate(Type, PurchLine.Type::"G/L Account");
+                lRecVendor.GET(PRLine."Vendor No.");
+                lRecVendor.TESTFIELD(Blocked, lRecVendor.Blocked::" ");
+            END;
+        UNTIL PRLine.NEXT = 0;
 
-                PurchLine.Validate("No.", PRLine."Item No.");
-                PurchLine.Validate("Location Code", PRLine."Location Code");
-                PurchLine.Validate(Quantity, PRLine."Qty to PO");
-                PurchLine.Validate("Direct Unit Cost", PRLine."Direct Unit Cost");
-                // Tautan balik ke PR (dipakai untuk tracking PO dari PR Card).
-                PurchLine."Purchase Req. No." := PRHeader."Purchase Req. No.";
-                PurchLine."Purchase Req. Line No." := PRLine."Line No.";
-                PurchLine."Original Qty PR" := PRLine."Qty to PO";
-                PurchLine.Modify(true);
+        IF NOT AnyQty THEN
+            ERROR('Tidak ada baris yang siap diproses. Isi kolom "Qty to PO" minimal pada satu baris.');
 
-                // 5. Kurangi sisa Qty yang belum di-PO-kan di PR Line
-                PRLine."Total Qty On PO" += PRLine."Qty to PO";
-                PRLine."Outstanding Quantity" -= PRLine."Qty to PO";
-                PRLine."Qty to PO" := 0;
-                PRLine.Modify(true);
+        // ============ PASS 2 : BUAT PO ============
+        gBolSkipPRRefresh := TRUE;
 
-                LineNo += 10000;
-            until PRLine.Next() = 0;
+        PRLine.RESET;
+        PRLine.SETCURRENTKEY("Purchase Req. No.", "Vendor No.");
+        PRLine.SETRANGE("Purchase Req. No.", PRHeader."Purchase Req. No.");
+        PRLine.Ascending(TRUE);
+        // Sengaja TIDAK pakai SETFILTER("Qty to PO", '>0'):
+        // di dalam loop kita set "Qty to PO" := 0, dan mengubah field yang sedang
+        // difilter bikin cursor FindSet kehilangan posisi.
+        IF PRLine.FINDSET(TRUE) THEN
+            REPEAT
+                IF PRLine."Qty to PO" > 0 THEN BEGIN
 
-            // Update status PR Header sesuai sisa Outstanding:
-            // masih ada sisa -> Processed, habis semua -> Closed.
-            closedStatus_PRMaterial(PRHeader."Purchase Req. No.");
-            IF PRHeader.GET(PRHeader."Purchase Req. No.") THEN;
+                    IF CurrentVendor <> PRLine."Vendor No." THEN BEGIN
+                        GetOrCreatePO_PRMAT(PRHeader, PRLine."Vendor No.", PurchHeader);
+                        CurrentVendor := PRLine."Vendor No.";
+                        IF STRPOS(CreatedPO, PurchHeader."No.") = 0 THEN BEGIN
+                            CreatedPO += PurchHeader."No." + '  ';
+                            POCount += 1;
+                        END;
+                    END;
 
-            Message('Berhasil membuat %1 dokumen Purchase Order. PO telah dikelompokkan berdasarkan Vendor.', POCount);
-        end else begin
-            Error('Tidak ada baris PR yang siap diproses menjadi PO. Pastikan "Qty to PO" lebih dari 0.');
-        end;
+                    InsertPOLine_PRMAT(PurchHeader, PRLine, PRLine."Qty to PO", BatchNo);
+
+                    PRLine."Qty Transferred to PO" += PRLine."Qty to PO";
+                    PRLine."Qty to PO" := 0;
+                    PRLine.RecalcOutstanding();
+                    PRLine.MODIFY(TRUE);
+                END;
+            UNTIL PRLine.NEXT = 0;
+
+        gBolSkipPRRefresh := FALSE;
+
+        PRHeader."Batch No. [PR]" := BatchNo;
+        PRHeader.MODIFY(TRUE);
+
+        closedStatus_PRMaterial(PRHeader."Purchase Req. No.");
+        IF PRHeader.GET(PRHeader."Purchase Req. No.") THEN;
+
+        MESSAGE('Berhasil membuat %1 Purchase Order: %2', POCount, CreatedPO);
     end;
+
+    local procedure GetOrCreatePO_PRMAT(PRHeader: Record "PR Material Header"; VendorNo: Code[20]; var PurchHeader: Record "Purchase Header")
+    begin
+        // Pakai lagi PO yang masih Open untuk PR + vendor yang sama,
+        // supaya batch kedua nempel ke PO yang sama.
+        PurchHeader.RESET;
+        PurchHeader.SETRANGE("Document Type", PurchHeader."Document Type"::Order);
+        PurchHeader.SETRANGE("Purchase Req. No.", PRHeader."Purchase Req. No.");
+        PurchHeader.SETRANGE("Buy-from Vendor No.", VendorNo);
+        PurchHeader.SETRANGE(Status, PurchHeader.Status::Open);
+        IF PurchHeader.FINDFIRST THEN
+            EXIT;
+
+        PurchHeader.INIT;
+        PurchHeader.VALIDATE("Document Type", PurchHeader."Document Type"::Order);
+        PurchHeader.INSERT(TRUE);
+
+        PurchHeader.VALIDATE("Buy-from Vendor No.", VendorNo);
+        PurchHeader.VALIDATE("Document Date", WORKDATE());
+        IF PRHeader."Location Code" <> '' THEN
+            PurchHeader.VALIDATE("Location Code", PRHeader."Location Code");
+        // "Payment Terms Code" di PR Header itu Text[100], di Purchase Header Code[10]
+        IF PRHeader."Payment Terms Code" <> '' THEN
+            PurchHeader.VALIDATE("Payment Terms Code", COPYSTR(PRHeader."Payment Terms Code", 1, 10));
+        PurchHeader."Your Reference" := PRHeader."Purchase Req. No.";
+        PurchHeader."Purchase Req. No." := PRHeader."Purchase Req. No.";
+        SetDimPurchHeader(PurchHeader, 1, PRHeader."Shortcut Dimension 1 Code");
+        SetDimPurchHeader(PurchHeader, 2, PRHeader."Shortcut Dimension 2 Code");
+        SetDimPurchHeader(PurchHeader, 3, PRHeader."Shortcut Dimension 3 Code");
+        SetDimPurchHeader(PurchHeader, 4, PRHeader."Shortcut Dimension 4 Code");
+        SetDimPurchHeader(PurchHeader, 5, PRHeader."Shortcut Dimension 5 Code");
+        SetDimPurchHeader(PurchHeader, 6, PRHeader."Shortcut Dimension 6 Code");
+        SetDimPurchHeader(PurchHeader, 7, PRHeader."Shortcut Dimension 7 Code");
+        SetDimPurchHeader(PurchHeader, 8, PRHeader."Shortcut Dimension 8 Code");
+        PurchHeader.MODIFY(TRUE);
+    end;
+
+    local procedure InsertPOLine_PRMAT(PurchHeader: Record "Purchase Header"; PRLine: Record "PR Material Line"; Qty: Decimal; BatchNo: Integer)
+    var
+        PurchLine: Record "Purchase Line";
+    begin
+        PurchLine.INIT;
+        PurchLine."Document Type" := PurchHeader."Document Type";
+        PurchLine."Document No." := PurchHeader."No.";
+        PurchLine."Line No." := getLastLineNoPO_Doc(PurchHeader);
+        PurchLine.INSERT(TRUE);
+
+        CASE PRLine.Type OF
+            PRLine.Type::Item:
+                PurchLine.VALIDATE(Type, PurchLine.Type::Item);
+            PRLine.Type::"G/L Account":
+                PurchLine.VALIDATE(Type, PurchLine.Type::"G/L Account");
+            PRLine.Type::"Fixed Asset":
+                PurchLine.VALIDATE(Type, PurchLine.Type::"Fixed Asset");
+            ELSE
+                PurchLine.VALIDATE(Type, PurchLine.Type::" ");
+        END;
+
+        PurchLine.VALIDATE("No.", PRLine."Item No.");
+        PurchLine.Description := PRLine.Description;
+        IF PRLine."Location Code" <> '' THEN
+            PurchLine.VALIDATE("Location Code", PRLine."Location Code");
+        IF PRLine."Unit of Measure" <> '' THEN
+            PurchLine.VALIDATE("Unit of Measure", PRLine."Unit of Measure");
+        IF PRLine."Variant Code" <> '' THEN
+            PurchLine.VALIDATE("Variant Code", PRLine."Variant Code");
+
+        PurchLine.VALIDATE(Quantity, Qty);
+        PurchLine.VALIDATE("Direct Unit Cost", PRLine."Direct Unit Cost");
+
+        PurchLine.VALIDATE("Part No.", PRLine."Part No.");
+        PurchLine.VALIDATE("Purchase Req. No.", PRLine."Purchase Req. No.");
+        PurchLine.VALIDATE("Purchase Req. Line No.", PRLine."Line No.");
+        PurchLine.VALIDATE("Material Req. No.", PRLine."Material Req. No.");
+        PurchLine.VALIDATE("Material Req. Line No.", PRLine."Material Req. Line No.");
+        PurchLine.VALIDATE("PR Line Type", PRLine.Type);
+        PurchLine."Original Qty PR" := Qty;
+        PurchLine."PR Type" := PurchLine."PR Type"::Material;
+        PurchLine."Batch No. [PR]" := BatchNo;
+        PurchLine."PPH 22" := PRLine."PPH 22";
+
+        // dimensi — hilang di versi lama, ini bikin PO kehilangan dimensi PR
+        PurchLine.ValidateShortcutDimCode(1, PRLine."Shortcut Dimension 1 Code");
+        PurchLine.ValidateShortcutDimCode(2, PRLine."Shortcut Dimension 2 Code");
+        PurchLine.ValidateShortcutDimCode(3, PRLine."Shortcut Dimension 3 Code");
+        PurchLine.ValidateShortcutDimCode(4, PRLine."Shortcut Dimension 4 Code");
+        PurchLine.ValidateShortcutDimCode(5, PRLine."Shortcut Dimension 5 Code");
+        PurchLine.ValidateShortcutDimCode(6, PRLine."Shortcut Dimension 6 Code");
+        PurchLine.ValidateShortcutDimCode(7, PRLine."Shortcut Dimension 7 Code");
+        PurchLine.ValidateShortcutDimCode(8, PRLine."Shortcut Dimension 8 Code");
+
+        PurchLine.VALIDATE("Unit Group", PRLine."Unit Group");
+        PurchLine.VALIDATE("MR Usage Category", PRLine."MR Usage Category");
+
+        SetDimPurchLine(PurchLine, 1, PRLine."Shortcut Dimension 1 Code");
+        SetDimPurchLine(PurchLine, 2, PRLine."Shortcut Dimension 2 Code");
+        SetDimPurchLine(PurchLine, 3, PRLine."Shortcut Dimension 3 Code");
+        SetDimPurchLine(PurchLine, 4, PRLine."Shortcut Dimension 4 Code");
+        SetDimPurchLine(PurchLine, 5, PRLine."Shortcut Dimension 5 Code");
+        SetDimPurchLine(PurchLine, 6, PRLine."Shortcut Dimension 6 Code");
+        SetDimPurchLine(PurchLine, 7, PRLine."Shortcut Dimension 7 Code");
+        SetDimPurchLine(PurchLine, 8, PRLine."Shortcut Dimension 8 Code");
+
+
+
+        PurchLine.MODIFY(TRUE);
+    end;
+
+    local procedure getLastLineNoPO_Doc(PurchHeader: Record "Purchase Header"): Integer
+    var
+        lRecPurchLine: Record "Purchase Line";
+    begin
+        lRecPurchLine.RESET;
+        lRecPurchLine.SETRANGE("Document Type", PurchHeader."Document Type");   // versi lama lupa ini
+        lRecPurchLine.SETRANGE("Document No.", PurchHeader."No.");
+        IF lRecPurchLine.FINDLAST THEN
+            EXIT(lRecPurchLine."Line No." + 10000);
+        EXIT(10000);
+    end;
+
+
 
     procedure createPOLine_PRAsset(ParPRLine: Record "PR Material Line"; PONo: Code[20]; BatchNo: Integer)
     var
@@ -1000,10 +1409,112 @@ codeunit 50104 "PR Material Function"
             EXIT(10000);
     end;
 
+    procedure CanProcessPR(PRHeader: Record "PR Material Header"): Boolean
+    begin
+        EXIT(PRHeader.Status IN [PRHeader.Status::Released, PRHeader.Status::Processed]);
+    end;
+
+    procedure FillQtyToPO(PRHeader: Record "PR Material Header")
+    begin
+        FillQty(PRHeader."Purchase Req. No.", TRUE);
+    end;
+
+    procedure FillQtyToRFQ(PRHeader: Record "PR Material Header")
+    begin
+        FillQty(PRHeader."Purchase Req. No.", FALSE);
+    end;
+
+    local procedure FillQty(PRNo: Code[20]; ForPO: Boolean)
+    var
+        lRecPRLine: Record "PR Material Line";
+        Cnt: Integer;
+    begin
+        lRecPRLine.RESET;
+        lRecPRLine.SETRANGE("Purchase Req. No.", PRNo);
+        IF lRecPRLine.FINDSET(TRUE) THEN
+            REPEAT
+                lRecPRLine.RecalcOutstanding();
+                IF lRecPRLine."Outstanding Quantity" > 0 THEN BEGIN
+                    IF ForPO THEN
+                        lRecPRLine."Qty to PO" := lRecPRLine."Outstanding Quantity"
+                    ELSE
+                        lRecPRLine."Qty to RFQ" := lRecPRLine."Outstanding Quantity";
+                    Cnt += 1;
+                END;
+                lRecPRLine.MODIFY(TRUE);
+            UNTIL lRecPRLine.NEXT = 0;
+
+        MESSAGE('%1 baris terisi.', Cnt);
+    end;
+
+    // ---- reversal: hapus / ubah PO Line -> sisa PR ikut benar ----
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure PurchLine_OnAfterDelete_RefreshPR(var Rec: Record "Purchase Line"; RunTrigger: Boolean)
+    begin
+        RefreshPRFromPurchLine(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterModifyEvent', '', false, false)]
+    local procedure PurchLine_OnAfterModify_RefreshPR(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; RunTrigger: Boolean)
+    begin
+        IF Rec.Quantity = xRec.Quantity THEN
+            EXIT;
+        RefreshPRFromPurchLine(Rec);
+    end;
+
+    local procedure RefreshPRFromPurchLine(PurchLine: Record "Purchase Line")
+    var
+        lRecPRLine: Record "PR Material Line";
+    begin
+        IF gBolSkipPRRefresh THEN EXIT;
+        IF PurchLine.IsTemporary() THEN EXIT;
+        IF PurchLine."Purchase Req. No." = '' THEN EXIT;
+        IF PurchLine."Quantity Received" > 0 THEN EXIT;      // <-- WAJIB
+        IF NOT lRecPRLine.GET(PurchLine."Purchase Req. No.", PurchLine."Purchase Req. Line No.") THEN EXIT;
+
+        lRecPRLine."Qty Transferred to PO" -= PurchLine.Quantity;
+        IF lRecPRLine."Qty Transferred to PO" < 0 THEN
+            lRecPRLine."Qty Transferred to PO" := 0;
+        lRecPRLine.RecalcOutstanding();
+        lRecPRLine.MODIFY(FALSE);
+        closedStatus_PRMaterial(lRecPRLine."Purchase Req. No.");
+    end;
+
+    local procedure SetDimPurchLine(var PurchLine: Record "Purchase Line"; DimNo: Integer; DimCode: Code[20])
+    begin
+        IF DimCode = '' THEN
+            EXIT;
+        PurchLine.ValidateShortcutDimCode(DimNo, DimCode);
+    end;
+
+    local procedure SetDimPurchHeader(var PurchHeader: Record "Purchase Header"; DimNo: Integer; DimCode: Code[20])
+    begin
+        IF DimCode = '' THEN
+            EXIT;
+        PurchHeader.ValidateShortcutDimCode(DimNo, DimCode);
+    end;
+
+    local procedure SyncVendorFromHeader(PRHeader: Record "PR Material Header")
+    var
+        lRecPRLine: Record "PR Material Line";
+    begin
+        IF PRHeader."Vendor No" = '' THEN
+            EXIT;
+
+        lRecPRLine.RESET;
+        lRecPRLine.SETRANGE("Purchase Req. No.", PRHeader."Purchase Req. No.");
+        lRecPRLine.SETRANGE("Vendor No.", '');
+        IF lRecPRLine.FINDSET(TRUE) THEN
+            REPEAT
+                lRecPRLine.VALIDATE("Vendor No.", PRHeader."Vendor No");
+                lRecPRLine.MODIFY(TRUE);
+            UNTIL lRecPRLine.NEXT = 0;
+    end;
 
     var
         gRecMSISetup: Record "MII Setup";
         //gCUNoSeriesMgt: Codeunit NoSeriesManagement;
         NoSeries: Codeunit "No. Series";
         gCUMRFunct: Codeunit "Material Req. Function";
+        gBolSkipPRRefresh: Boolean;
 }

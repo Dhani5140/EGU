@@ -70,6 +70,13 @@ page 50103 "Material Req. Subform"
                         CurrPage.UPDATE();
                     end;
                 }
+                field("Qty to PR"; Rec."Qty to PR")
+                {
+                    ApplicationArea = all;
+                    DecimalPlaces = 0 : 5;
+                    Editable = FALSE;
+                    ToolTip = 'Angka yang akan diambil saat Get MR Line berikutnya.';
+                }
                 // field("Quantity Delivery"; Rec."Quantity Delivery")
                 // {
                 //     ApplicationArea = all;
